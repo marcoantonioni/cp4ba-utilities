@@ -80,7 +80,8 @@ echo "#======================================="
 echo "Reboot nodes: workers[${_WORKERS}] control[${_CTRL_PLANE}]"
 echo ""
 if [[ "${_WORKERS}" = "false" ]] && [[ "${_CTRL_PLANE}" = "false" ]]; then
-  echo -e "${_CLR_RED}Nothing to do, use ${_CLR_YELLOW}'-c'${_CLR_RED} for control-plane, ${_CLR_YELLOW}'-w'${_CLR_RED} for workers${_CLR_NC}"
+  echo -e "${_CLR_RED}Nothing to do, use one or both parameters: ${_CLR_YELLOW}'-c'${_CLR_RED} for control-plane, ${_CLR_YELLOW}'-w'${_CLR_RED} for workers${_CLR_NC}"
+  echo "usage: $_me -c -w"
   echo ""
   exit
 fi

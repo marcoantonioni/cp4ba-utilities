@@ -1,8 +1,19 @@
 #!/bin/bash
 
+########################################################
+# example: ./cp4ba-remove-namespace.sh -n cp4ba
+########################################################
+
 _me=$(basename "$0")
 
 _CP4BA_NAMESPACE=""
+
+#--------------------------------------------------------
+_CLR_RED='\033[0;31m'   #'0;31' is Red's ANSI color code
+_CLR_GREEN='\033[0;32m'   #'0;32' is Green's ANSI color code
+_CLR_YELLOW='\033[1;32m'   #'1;32' is Yellow's ANSI color code
+_CLR_BLUE='\033[0;34m'   #'0;34' is Blue's ANSI color code
+_CLR_NC='\033[0m'
 
 #--------------------------------------------------------
 # read command line params
@@ -44,6 +55,7 @@ namespaceExist () {
   return 1
 }
 
+#-------------------------------
 removeOwnersAndFinalizers() {
   TNS=$1
   TYPE=$2
@@ -51,15 +63,17 @@ removeOwnersAndFinalizers() {
   oc get -n ${TNS} ${TYPE} --no-headers 2> /dev/null | awk '{print $1}' | xargs oc patch -n ${TNS} ${TYPE} --type=merge -p '{"metadata": {"finalizers":null}}' 2> /dev/null
 }
 
+#-------------------------------
 deleteObject() {
   TNS=$1
   TYPE=$2
   echo "#-----------------------------------------"
-  echo "Deleting objects of type '${TYPE}' from ns '${TNS}' ..."
+  echo -e "${_CLR_GREEN}Deleting objects of type '${_CLR_YELLOW}${TYPE}${_CLR_GREEN}' from ns '${_CLR_YELLOW}${TNS}${_CLR_GREEN}'${_CLR_NC} ..."
   oc get ${TYPE} -n ${TNS} --no-headers 2> /dev/null | awk '{print $1}' | xargs oc delete ${TYPE} -n ${TNS} --wait=false 2> /dev/null
   removeOwnersAndFinalizers ${TNS} ${TYPE}
 }
 
+#-------------------------------
 deleteCp4baNamespace () {
   TNS=$1
   CR_NAME=$(oc get ICP4ACluster -n ${TNS} --no-headers  2> /dev/null | awk '{print $1}')
@@ -95,12 +109,13 @@ deleteCp4baNamespace () {
 }
 
 #===========================================================
+
 echo "#========================================="
-echo "Removing namespace: "${_CP4BA_NAMESPACE}
+echo -e "${_CLR_YELLOW}Removing namespace: '${_CLR_GREEN}${_CP4BA_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}"
 namespaceExist ${_CP4BA_NAMESPACE}
 if [ $? -eq 1 ]; then
   deleteCp4baNamespace ${_CP4BA_NAMESPACE}
-  echo "Namespace ${_CP4BA_NAMESPACE} removed."
+  echo -e "${_CLR_GREEN}Namespace '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}' removed.${_CLR_NC}"
 else
-  echo "ERROR: namespace ${_CP4BA_NAMESPACE} doesn't exist."
+  echo -e "${_CLR_RED}ERROR: namespace '${_CP4BA_NAMESPACE}' doesn't exist.${_CLR_NC}"
 fi
