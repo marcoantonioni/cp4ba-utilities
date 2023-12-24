@@ -68,7 +68,7 @@ deleteObject() {
   TNS=$1
   TYPE=$2
   echo "#-----------------------------------------"
-  echo -e "${_CLR_GREEN}Deleting objects of type '${_CLR_YELLOW}${TYPE}${_CLR_GREEN}' from ns '${_CLR_YELLOW}${TNS}${_CLR_GREEN}'${_CLR_NC} ..."
+  echo -e "${_CLR_GREEN}Deleting objects of type '${_CLR_YELLOW}${TYPE}${_CLR_GREEN}'${_CLR_NC} ..."
   oc get ${TYPE} -n ${TNS} --no-headers 2> /dev/null | awk '{print $1}' | xargs oc delete ${TYPE} -n ${TNS} --wait=false 2> /dev/null
   removeOwnersAndFinalizers ${TNS} ${TYPE}
 }
@@ -87,24 +87,28 @@ deleteCp4baNamespace () {
   done
 
   oc delete ns ${TNS} --wait=false 2> /dev/null
-  sleep 1
+  sleep 5
   
-  _patchLoop=30
-  until [ $_patchLoop -gt 0 ]
-  do
-    echo "_patchLoop: "$_patchLoop
-    ((_patchLoop=_patchLoop-1))
-    namespaceExist ${TNS}
-    if [ $? -eq 1 ]; then
-      oc patch ns ${TNS} --type='merge' -p '{"spec": {"finalizers":null}}' 2> /dev/null
-      sleep 2
-    else
-      break
-    fi
-  done  
   namespaceExist ${TNS}
   if [ $? -eq 1 ]; then
-    deleteCp4baNamespace ${TNS}
+    _patchLoop=30
+    until [ $_patchLoop -lt 1 ];
+    do
+      ((_patchLoop=_patchLoop-1))
+      namespaceExist ${TNS}
+      if [ $? -eq 1 ]; then
+        oc patch ns ${TNS} --type='merge' -p '{"spec": {"finalizers":null}}' 2> /dev/null
+        echo -e -n "${_CLR_GREEN}patching finalizers [${_CLR_YELLOW}"${_patchLoop}"${_CLR_GREEN}]${_CLR_NC}  \033[0K\r"
+        sleep 1
+      else
+        echo ""
+        break
+      fi
+    done  
+    namespaceExist ${TNS}
+    if [ $? -eq 1 ]; then
+      deleteCp4baNamespace ${TNS}
+    fi
   fi
 }
 
@@ -117,5 +121,5 @@ if [ $? -eq 1 ]; then
   deleteCp4baNamespace ${_CP4BA_NAMESPACE}
   echo -e "${_CLR_GREEN}Namespace '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}' removed.${_CLR_NC}"
 else
-  echo -e "${_CLR_RED}ERROR: namespace '${_CP4BA_NAMESPACE}' doesn't exist.${_CLR_NC}"
+  echo -e "${_CLR_YELLOW}Namespace '${_CLR_GREEN}${_CP4BA_NAMESPACE}${_CLR_YELLOW}' not found.${_CLR_NC}"
 fi
