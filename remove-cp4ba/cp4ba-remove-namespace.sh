@@ -86,6 +86,8 @@ deleteCp4baNamespace () {
     deleteObject ${TNS} ${_type}
   done
 
+  echo "#-----------------------------------------"
+  echo -e "${_CLR_GREEN}Deleting namespace '${_CLR_YELLOW}${TNS}${_CLR_GREEN}'${_CLR_NC} ..."
   oc delete ns ${TNS} --wait=false 2> /dev/null
   sleep 5
   
@@ -97,7 +99,7 @@ deleteCp4baNamespace () {
       ((_patchLoop=_patchLoop-1))
       namespaceExist ${TNS}
       if [ $? -eq 1 ]; then
-        oc patch ns ${TNS} --type='merge' -p '{"spec": {"finalizers":null}}' 2> /dev/null
+        oc patch ns ${TNS} --type='merge' -p '{"spec": {"finalizers":null}}' 2> /dev/null 1> /dev/null
         echo -e -n "${_CLR_GREEN}patching finalizers [${_CLR_YELLOW}"${_patchLoop}"${_CLR_GREEN}]${_CLR_NC}  \033[0K\r"
         sleep 1
       else
@@ -115,7 +117,7 @@ deleteCp4baNamespace () {
 #===========================================================
 
 echo "#========================================="
-echo -e "${_CLR_YELLOW}Removing namespace: '${_CLR_GREEN}${_CP4BA_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}"
+echo -e "${_CLR_YELLOW}Removing CP4BA items and namespace: '${_CLR_GREEN}${_CP4BA_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}"
 namespaceExist ${_CP4BA_NAMESPACE}
 if [ $? -eq 1 ]; then
   deleteCp4baNamespace ${_CP4BA_NAMESPACE}
