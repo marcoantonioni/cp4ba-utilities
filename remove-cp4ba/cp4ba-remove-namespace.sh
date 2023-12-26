@@ -31,7 +31,8 @@ fi
 
 #-------------------------------
 # CP4BA Resource types
-declare -a _pakResources=(csv cm secret service route deployment pod rs job zenextensions.zen.cpd.ibm.com clients.oidc.security.ibm.com operandrequests.operator.ibm.com operandbindinfos.operator.ibm.com authentications.operator.ibm.com pvc pv)
+# do not remove: pv
+declare -a _pakResources=(csv cm secret service route deployment pod rs job zenextensions.zen.cpd.ibm.com clients.oidc.security.ibm.com operandrequests.operator.ibm.com operandbindinfos.operator.ibm.com authentications.operator.ibm.com pvc)
 
 #-------------------------------
 resourceExist () {
