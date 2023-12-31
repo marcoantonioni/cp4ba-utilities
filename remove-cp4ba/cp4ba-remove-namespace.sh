@@ -49,7 +49,7 @@ resourceExist () {
 #-------------------------------
 namespaceExist () {
 # ns name: $1
-  if [ $(oc get ns -n $1 2> /dev/null | grep $1 | wc -l) -lt 1 ];
+  if [ $(oc get ns $1 2> /dev/null | grep $1 | wc -l) -lt 1 ];
   then
       return 0
   fi
