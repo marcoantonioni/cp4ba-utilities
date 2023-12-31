@@ -9,4 +9,6 @@ remove
 
 "annotations": {
    "pv.kubernetes.io/bind-completed": "yes"
-},
+}
+
+

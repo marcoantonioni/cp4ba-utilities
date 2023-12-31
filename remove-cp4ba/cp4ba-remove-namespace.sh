@@ -32,7 +32,7 @@ fi
 #-------------------------------
 # CP4BA Resource types
 # do not remove: pv
-declare -a _pakResources=(csv cm secret service route deployment pod rs job zenextensions.zen.cpd.ibm.com clients.oidc.security.ibm.com operandrequests.operator.ibm.com operandbindinfos.operator.ibm.com authentications.operator.ibm.com pvc)
+declare -a _pakResources=(csv deployment job cm secret service route rs pod zenextensions.zen.cpd.ibm.com clients.oidc.security.ibm.com operandrequests.operator.ibm.com operandbindinfos.operator.ibm.com authentications.operator.ibm.com pvc)
 
 #-------------------------------
 resourceExist () {
@@ -94,7 +94,7 @@ deleteCp4baNamespace () {
   
   namespaceExist ${TNS}
   if [ $? -eq 1 ]; then
-    _patchLoop=30
+    _patchLoop=60
     until [ $_patchLoop -lt 1 ];
     do
       ((_patchLoop=_patchLoop-1))
