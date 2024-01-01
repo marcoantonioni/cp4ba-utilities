@@ -118,7 +118,7 @@ deleteCp4baNamespace () {
 #===========================================================
 
 echo "#========================================="
-echo -e "${_CLR_YELLOW}Removing CP4BA items and namespace: '${_CLR_GREEN}${_CP4BA_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}"
+echo -e "${_CLR_YELLOW}Removing namespace: '${_CLR_GREEN}${_CP4BA_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}"
 namespaceExist ${_CP4BA_NAMESPACE}
 if [ $? -eq 1 ]; then
   deleteCp4baNamespace ${_CP4BA_NAMESPACE}
