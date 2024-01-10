@@ -102,9 +102,11 @@ exit
 # References
 
 CP4BA (WARNING the xml snippet is missing the attribute --> alias="git_user" <-- as of 2024-01-10)
+
 [https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/23.0.2?topic=projects-configuring-cicd-integration](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/23.0.2?topic=projects-configuring-cicd-integration)
 
 
 BAW
+
 [https://www.ibm.com/docs/en/baw/23.x?topic=projects-configuring-cicd-integration](https://www.ibm.com/docs/en/baw/23.x?topic=projects-configuring-cicd-integration)
 
