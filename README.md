@@ -1,14 +1,12 @@
 # cp4ba-utilities
 
+<i>Last update: 2024-01-10</i>
 
-## PVC Lost state
+1. cp4ba-remove-namespace.sh
 
-https://stackoverflow.com/questions/69331594/is-it-possible-to-recover-the-kubernetes-lost-state-pvc
+Removes contents and deletes a namespace. Cleans all CP4BA resources on its own.
 
-remove 
+2. reboot-nodes.sh
 
-"annotations": {
-   "pv.kubernetes.io/bind-completed": "yes"
-}
-
+It autonomously reboots all the nodes of the Openshift cluster. It is possible to select between workers, master and both.
 
