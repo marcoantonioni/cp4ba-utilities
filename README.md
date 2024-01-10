@@ -10,3 +10,6 @@ Removes contents and deletes a namespace. Cleans all CP4BA resources on its own.
 
 It autonomously reboots all the nodes of the Openshift cluster. It is possible to select between workers, master and both.
 
+3. configure-bastudio-ci-cd
+
+Sequence of operations to configure BAStudio with GIT for CI/CD.
