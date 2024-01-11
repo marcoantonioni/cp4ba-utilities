@@ -19,11 +19,11 @@ _GIT_CI_CD_CFG_FOLDER="./ci-cd-output"
 mkdir -p ${_GIT_CI_CD_CFG_FOLDER}
 ```
 
-Set CI/CD values
+Set CI/CD values with your values
 ```
 _GIT_AUTH_SECRET_NAME="my-git-auth"
 _GIT_TLS_SECRET_NAME="my-git-tls"
-_GIT_REPO_URL="https://api.github.com/${_GIT_USER_ID}/${_GIT_REPO_NAME}"
+_GIT_REPO_URL="https://api.github.com/repos/${_GIT_USER_ID}/${_GIT_REPO_NAME}"
 _GIT_AUTH_DATA_FILE="${_GIT_CI_CD_CFG_FOLDER}/auth-data.xml"
 _GIT_CERT_FILE="${_GIT_CI_CD_CFG_FOLDER}/git.cert"
 ```
