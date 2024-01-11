@@ -66,6 +66,14 @@ oc create secret generic -n ${_BASTUDIO_NAMESPACE} ${_GIT_TLS_SECRET_NAME} --fro
 
 ## 4. Update CP4A CR
 
+You must update 'bastudio_configuration' with
+
+- bastudio_custom_xml
+- custom_secret_name
+- tlsTrustList
+
+May be, in started authoring env, you have not the section 'bastudio_configuration' so add entire snippet under 'spec' sction.
+
 ### 4.1 section 'bastudio_configuration'
 Note: the '<b>git-endpoint-url</b>' value should have "api.github.com" instead of "github.com"
 
