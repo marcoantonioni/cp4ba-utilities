@@ -74,7 +74,7 @@ You must update 'bastudio_configuration' with
 
 May be, in 'starter' deployment authoring env, you have not the section 'bastudio_configuration' so add entire snippet under 'spec' sction.
 
-You may should also update 'shared_configuration' to enable external IP access.
+You may should also update 'shared_configuration' section to enable external IP access.
 
 ### 4.1 section 'bastudio_configuration'
 Note: the '<b>git-endpoint-url</b>' value should have "api.github.com" instead of "github.com"
