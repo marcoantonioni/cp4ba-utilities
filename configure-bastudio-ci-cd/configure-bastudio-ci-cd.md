@@ -11,12 +11,21 @@ Set your data in env vars _GIT_USER_ID, _GIT_TOKEN, _GIT_REPO_NAME
 _GIT_USER_ID="your-git-id"
 _GIT_TOKEN="your-git-token eg: ghp_...pb"
 _GIT_REPO_NAME="your-repo-name"
+```
 
-_GIT_REPO_URL="https://api.github.com/${_GIT_USER_ID}/${_GIT_REPO_NAME}"
-_GIT_AUTH_DATA_FILE="./auth-data.xml"
+Set output folder for auth data file and certificate
+```
+_GIT_CI_CD_CFG_FOLDER="./ci-cd-output"
+mkdir -p ${_GIT_CI_CD_CFG_FOLDER}
+```
+
+Set CI/CD values
+```
 _GIT_AUTH_SECRET_NAME="my-git-auth"
 _GIT_TLS_SECRET_NAME="my-git-tls"
-_GIT_CERT_FILE="./git.cert"
+_GIT_REPO_URL="https://api.github.com/${_GIT_USER_ID}/${_GIT_REPO_NAME}"
+_GIT_AUTH_DATA_FILE="${_GIT_CI_CD_CFG_FOLDER}/auth-data.xml"
+_GIT_CERT_FILE="${_GIT_CI_CD_CFG_FOLDER}/git.cert"
 ```
 Create the xml auth data file
 ```
@@ -37,8 +46,13 @@ openssl s_client -showcerts -connect github.com:443 2>/dev/null | sed -ne '/-BEG
 ```
 
 ## 3. Create secrets
+
+Update with your namespace
 ```
 _BASTUDIO_NAMESPACE="set-your-namespace"
+
+oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} 2>/dev/null
+oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_TLS_SECRET_NAME} 2>/dev/null
 
 # auth data
 oc create secret generic -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} --from-file=sensitiveCustom.xml=${_GIT_AUTH_DATA_FILE}
@@ -69,7 +83,8 @@ echo '
     tls:
       tlsTrustList: ['${_GIT_TLS_SECRET_NAME}']'
 ```
-cut&paste the snippet into CR
+
+cut&paste the generated snippet into CR
 
 ### 4.2 section 'shared_configuration'
 
