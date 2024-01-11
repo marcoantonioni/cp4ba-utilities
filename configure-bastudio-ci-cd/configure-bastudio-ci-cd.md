@@ -57,7 +57,7 @@ oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_TLS_SECRET_NAME} 2>/dev/null
 # auth data
 oc create secret generic -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} --from-file=sensitiveCustom.xml=${_GIT_AUTH_DATA_FILE}
 
-# delete file wth your access token
+# !!! delete file wth your access token
 rm ${_GIT_AUTH_DATA_FILE}
 
 # tls
