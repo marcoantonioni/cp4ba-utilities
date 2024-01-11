@@ -57,7 +57,9 @@ echo '<?xml version="1.0" encoding="UTF-8"?>
 ```
 
 
-## 2. Grab GitHub certificate
+## 2. Save GitHub certificate
+
+The saved certificate will be added into trusted list for BAStudio deployment.
 
 ```
 openssl s_client -showcerts -connect github.com:443 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > ${_GIT_CERT_FILE}
@@ -68,28 +70,32 @@ openssl s_client -showcerts -connect github.com:443 2>/dev/null | sed -ne '/-BEG
 Update with your namespace
 ```
 _BASTUDIO_NAMESPACE="set-your-namespace"
+```
 
-# auth data
+### 3.1 auth data secret
+```
 oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} 2>/dev/null
 oc create secret generic -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} --from-file=sensitiveCustom.xml=${_GIT_AUTH_DATA_FILE}
 
-# !!! delete file wth your access token
+# !!! (optional) delete file wth your access token from your local storage
 rm ${_GIT_AUTH_DATA_FILE}
+```
 
-# tls
+### 3.2 tls secret
+```
 oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_TLS_SECRET_NAME} 2>/dev/null
 oc create secret generic -n ${_BASTUDIO_NAMESPACE} ${_GIT_TLS_SECRET_NAME} --from-file=tls.crt=${_GIT_CERT_FILE}
 ```
 
 ## 4. Update CP4A CR
 
-You must update 'bastudio_configuration' with
+You must update the following 'bastudio_configuration' sections
 
 - bastudio_custom_xml
 - custom_secret_name
 - tlsTrustList
 
-May be, in 'starter' deployment authoring env, you have not the section 'bastudio_configuration' so add entire snippet under 'spec' sction.
+May be, in 'starter' deployment authoring environment, you have not the section 'bastudio_configuration' so add entire snippet under 'spec' sction.
 
 You may should also update 'shared_configuration' section to enable external IP access.
 
@@ -114,7 +120,7 @@ echo '
       tlsTrustList: ['${_GIT_TLS_SECRET_NAME}']'
 ```
 
-cut&paste the generated snippet into CR
+Cut&Paste the generated snippet into CR
 
 ### 4.2 section 'shared_configuration'
 
@@ -192,7 +198,6 @@ Example of '1_descriptor.json' contents
 CP4BA (WARNING the xml snippet is missing the attribute --> alias="git_user" <-- as of 2024-01-10)
 
 [https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/23.0.2?topic=projects-configuring-cicd-integration](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/23.0.2?topic=projects-configuring-cicd-integration)
-
 
 
 BAW
