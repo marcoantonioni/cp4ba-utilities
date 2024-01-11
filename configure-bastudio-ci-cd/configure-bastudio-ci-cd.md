@@ -4,6 +4,10 @@
 
 Sequence of operations to configure BAStudio with GIT for CI/CD.
 
+# Access token
+
+...TBD
+
 # Steps
 
 ## 1. Create Github auth data
@@ -53,16 +57,15 @@ Update with your namespace
 ```
 _BASTUDIO_NAMESPACE="set-your-namespace"
 
-oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} 2>/dev/null
-oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_TLS_SECRET_NAME} 2>/dev/null
-
 # auth data
+oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} 2>/dev/null
 oc create secret generic -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} --from-file=sensitiveCustom.xml=${_GIT_AUTH_DATA_FILE}
 
 # !!! delete file wth your access token
 rm ${_GIT_AUTH_DATA_FILE}
 
 # tls
+oc delete secret -n ${_BASTUDIO_NAMESPACE} ${_GIT_TLS_SECRET_NAME} 2>/dev/null
 oc create secret generic -n ${_BASTUDIO_NAMESPACE} ${_GIT_TLS_SECRET_NAME} --from-file=tls.crt=${_GIT_CERT_FILE}
 ```
 
@@ -128,6 +131,20 @@ cat /opt/ibm/wlp/usr/shared/resources/sensitive-custom/sensitiveCustom1.xml | gr
 
 exit
 ```
+
+# Troubleshooting
+
+In case of resource not found with 404 error code check the complete url of your repository (must begin with https://api.github.com/repos for GitHub, adapt for your remote server).
+
+In case of failed authentication you will see a 401 error code. Verify the tag values of your 'authData' xml file. 
+```
+[2024-01-11T10:55:31.507+0000] 0000003a com.ibm.bpm.processcenter.api.ArtifactManagementApiImpl      E exception during checking the Json descriptor file in git
+[2024-01-11T10:55:31.507+0000] 0000003a com.ibm.bpm.processcenter.api.ArtifactManagementApiImpl      E Exception during pushing Json descriptor file to git
+java.io.IOException: Server returned HTTP response code: 401 for URL: https://api.github.com/repos/marcoantonioni/test-cp4ba-git/contents/workflow/SDSTPWP/0.2_descriptor.json
+        at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+        at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+```
+
 
 # References
 
