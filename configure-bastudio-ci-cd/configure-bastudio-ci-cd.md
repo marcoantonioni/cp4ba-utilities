@@ -6,18 +6,19 @@ Sequence of operations to configure BAStudio with GIT for CI/CD.
 
 # Access token, how to
 
-...TBD
-
-In my tests against GitHub I've created a token using the following scope
+In my tests against GitHub I've created a classic token using the following scope
 
 ```
-repoFull control of private repositories
+repo                Full control of private repositories
   repo:status       Access commit status
   repo_deployment   Access deployment status
   public_repo       Access public repositories
   repo:invite       Access repository invitations
   security_events   Read and write security events
 ```
+
+the generated token can be used as plain text for 'authData.password' attribute in xml auth data file.
+
 
 # Steps
 
