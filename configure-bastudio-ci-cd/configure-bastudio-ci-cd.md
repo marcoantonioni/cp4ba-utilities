@@ -1,5 +1,7 @@
 # configure-bastudio-ci-cd
 
+<i>Last update: 2024-01-11</i>
+
 Sequence of operations to configure BAStudio with GIT for CI/CD.
 
 # Steps
