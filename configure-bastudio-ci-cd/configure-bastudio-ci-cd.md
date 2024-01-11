@@ -19,7 +19,7 @@ _GIT_CI_CD_CFG_FOLDER="./ci-cd-output"
 mkdir -p ${_GIT_CI_CD_CFG_FOLDER}
 ```
 
-Set CI/CD values with your values
+Set CI/CD values with your values (pay attention here, must use: https://api.github.com/repos)
 ```
 _GIT_AUTH_SECRET_NAME="my-git-auth"
 _GIT_TLS_SECRET_NAME="my-git-tls"
