@@ -72,7 +72,7 @@ You must update 'bastudio_configuration' with
 - custom_secret_name
 - tlsTrustList
 
-May be, in started authoring env, you have not the section 'bastudio_configuration' so add entire snippet under 'spec' sction.
+May be, in 'starter' deployment authoring env, you have not the section 'bastudio_configuration' so add entire snippet under 'spec' sction.
 
 ### 4.1 section 'bastudio_configuration'
 Note: the '<b>git-endpoint-url</b>' value should have "api.github.com" instead of "github.com"
