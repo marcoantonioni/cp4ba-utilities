@@ -2,7 +2,7 @@
 
 <i>Last update: 2024-01-10</i>
 
-1. cp4ba-remove-namespace.sh
+1. [cp4ba-remove-namespace.sh](/configure-bastudio-ci-cd/configure-bastudio-ci-cd.md)
 
 Removes contents and deletes a namespace. Cleans all CP4BA resources on its own.
 
