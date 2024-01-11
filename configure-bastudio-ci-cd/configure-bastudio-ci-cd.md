@@ -4,9 +4,20 @@
 
 Sequence of operations to configure BAStudio with GIT for CI/CD.
 
-# Access token
+# Access token, how to
 
 ...TBD
+
+In my tests against GitHub I've created a token using the following scope
+
+```
+repoFull control of private repositories
+  repo:status       Access commit status
+  repo_deployment   Access deployment status
+  public_repo       Access public repositories
+  repo:invite       Access repository invitations
+  security_events   Read and write security events
+```
 
 # Steps
 
@@ -143,6 +154,35 @@ In case of failed authentication you will see a 401 error code. Verify the tag v
 java.io.IOException: Server returned HTTP response code: 401 for URL: https://api.github.com/repos/marcoantonioni/test-cp4ba-git/contents/workflow/SDSTPWP/0.2_descriptor.json
         at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
         at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+```
+
+# Example of repo contents after first 'Push to Git' from BAStudio
+
+You may access the contents accessing your repo url appending 'contents/workflow/' an then the acronym of an app (in my test 'GTW')
+```
+https://api.github.com/repos/marcoantonioni/test-cp4ba-git/contents/workflow/GTW/1_descriptor.json
+```
+
+Example of '1_descriptor.json' contents
+```
+{
+  "name": "1_descriptor.json",
+  "path": "workflow/GTW/1_descriptor.json",
+  "sha": "68ee3f67cdcb3fdcdc8b1cca1af40cc3db284760",
+  "size": 699,
+  "url": "https://api.github.com/repos/marcoantonioni/test-cp4ba-git/contents/workflow/GTW/1_descriptor.json?ref=main",
+  "html_url": "https://github.com/marcoantonioni/test-cp4ba-git/blob/main/workflow/GTW/1_descriptor.json",
+  "git_url": "https://api.github.com/repos/marcoantonioni/test-cp4ba-git/git/blobs/68ee3f67.....3db284760",
+  "download_url": "https://raw.githubusercontent.com/marcoantonioni/test-cp4ba-git/main/workflow/GTW/1_descriptor.json",
+  "type": "file",
+  "content": "eyJzbmFwc2hvdF9uYW1lIjoi..........vdWQudGVjaHpvbmUuaWJtLmNvbSJ9\n",
+  "encoding": "base64",
+  "_links": {
+    "self": "https://api.github.com/repos/marcoantonioni/test-cp4ba-git/contents/workflow/GTW/1_descriptor.json?ref=main",
+    "git": "https://api.github.com/repos/marcoantonioni/test-cp4ba-git/git/blobs/68ee3........84760",
+    "html": "https://github.com/marcoantonioni/test-cp4ba-git/blob/main/workflow/GTW/1_descriptor.json"
+  }
+}
 ```
 
 
