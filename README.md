@@ -1,6 +1,6 @@
 # cp4ba-utilities
 
-<i>Last update: 2024-01-11</i>
+<i>Last update: 2024-01-12</i>
 
 1. cp4ba-remove-namespace.sh
 
