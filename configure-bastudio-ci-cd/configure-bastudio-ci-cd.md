@@ -1,6 +1,6 @@
 # configure-bastudio-ci-cd
 
-<i>Last update: 2024-01-11</i>
+<i>Last update: 2024-01-12</i>
 
 Sequence of operations to configure BAStudio with GIT for CI/CD.
 
@@ -17,17 +17,20 @@ repo                Full control of private repositories
   security_events   Read and write security events
 ```
 
-the generated token can be used as plain text for 'authData.password' attribute in xml auth data file.
+the generated Git token can be used as plain text for 'authData.password' attribute in xml auth data file.
 
 
 # Steps
+
+Pay attention: the values of ```'authData.id'``` and ```<git-auth-alias-name>``` must match !
 
 ## 1. Create Github auth data
 
 Set your data in env vars _GIT_USER_ID, _GIT_TOKEN, _GIT_REPO_NAME
 ```
 _GIT_USER_ID="your-git-id"
-_GIT_TOKEN="your-git-token eg: ghp_...pb"
+_GIT_USER_ALIAS="your-git-user-alias"
+_GIT_TOKEN="your-git-token" # eg: ghp_...pb
 _GIT_REPO_NAME="your-repo-name"
 ```
 
@@ -49,13 +52,11 @@ Create the xml auth data file
 ```
 echo '<?xml version="1.0" encoding="UTF-8"?>
   <server>
-    <authData alias="git_user" 
-              id="git_user" 
+    <authData id="'${_GIT_USER_ALIAS}'" 
               user="'${_GIT_USER_ID}'" 
               password="'${_GIT_TOKEN}'"/>
   </server>' > ${_GIT_AUTH_DATA_FILE}
 ```
-
 
 ## 2. Save GitHub certificate
 
@@ -111,7 +112,7 @@ echo '
         <server>
           <git-configuration merge="mergeChildren">
             <git-endpoint-url>'${_GIT_REPO_URL}'</git-endpoint-url>
-            <git-auth-alias-name>git_user</git-auth-alias-name>
+            <git-auth-alias-name>'${_GIT_USER_ALIAS}'</git-auth-alias-name>
           </git-configuration>
         </server>
       </properties>
@@ -195,7 +196,7 @@ Example of '1_descriptor.json' contents
 
 # References
 
-CP4BA (WARNING the xml snippet is missing the attribute --> alias="git_user" <-- as of 2024-01-10)
+CP4BA
 
 [https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/23.0.2?topic=projects-configuring-cicd-integration](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/23.0.2?topic=projects-configuring-cicd-integration)
 
