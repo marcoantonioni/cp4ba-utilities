@@ -8,8 +8,12 @@
 
 2. reboot-nodes.sh
 
-    It autonomously reboots all the nodes of the Openshift cluster. It is possible to select between workers, master and both.
+    Reboots nodes of the Openshift cluster. It is possible to select between workers, master and both.
 
 3. [configure-bastudio-ci-cd](/configure-bastudio-ci-cd/configure-bastudio-ci-cd.md)
 
     Sequence of operations to configure BAStudio with GIT for CI/CD.
+
+4. cp4ba-baw-applications.sh
+
+    Applications management (deploy/activate/deactivate/undeploy)
