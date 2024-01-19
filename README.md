@@ -1,6 +1,10 @@
 # cp4ba-utilities
 
-<i>Last update: 2024-01-12</i>
+<i>Last update: 2024-01-19</i>
+
+```
+> main always unstable
+```
 
 1. cp4ba-remove-namespace.sh
 
@@ -14,6 +18,6 @@
 
     Sequence of operations to configure BAStudio with GIT for CI/CD.
 
-4. cp4ba-baw-applications.sh
+4. cp4ba-baw-applications.sh (* incomplete...)
 
     Applications management (deploy/activate/deactivate/undeploy)
