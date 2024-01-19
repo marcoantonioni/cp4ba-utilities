@@ -61,6 +61,8 @@ installApplication () {
 
 }
 
+echo "LOCAL TEST"
+exit
 
 # to be updated
 _BAW_DEPL_NAMESPACE="cp4ba-wfps-baw-pfs-demo"
