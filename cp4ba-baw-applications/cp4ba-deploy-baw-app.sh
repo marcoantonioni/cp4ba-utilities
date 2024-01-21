@@ -37,14 +37,13 @@ usage () {
     -u admin-user
     -p password
     -a app-file
-    -f force-case
-    ${_CLR_NC}"
+    -f force-case${_CLR_NC}"
 }
 
 
 #--------------------------------------------------------
 # read command line params
-while getopts c:p:s:v:d:mt flag
+while getopts n:b:c:u:p:a:f flag
 do
     case "${flag}" in
         n) _BAW_DEPL_NAMESPACE=${OPTARG};;
@@ -52,25 +51,10 @@ do
         c) _CR_NAME=${OPTARG};;
         u) _BAW_ADMINUSER=${OPTARG};;
         p) _BAW_ADMINPASSWORD=${OPTARG};;
-        t) _BAW_BAW_APP_FILE=${OPTARG};;
+        a) _BAW_BAW_APP_FILE=${OPTARG};;
         f) _BAW_BAW_APP_CASE_FORCE=true;;
-        \?) # Invalid option
-            usage
-            exit 1;;        
     esac
 done
-
-if [[ -z "${_CFG}" ]]; then
-  usage
-  exit 1
-fi
-
-if [[ ! -f "${_CFG}" ]]; then
-  echo "Configuration file not found: "${_CFG}
-  usage
-  exit 1
-fi
-
 
 installApplication () {
 
@@ -106,6 +90,7 @@ installApplication () {
 }
 
 if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]] || [[ -z "${_BAW_BAW_APP_FILE}" ]]; then
+  echo "ERROR: Empty values for required parameter"
   usage
   exit 1
 fi
