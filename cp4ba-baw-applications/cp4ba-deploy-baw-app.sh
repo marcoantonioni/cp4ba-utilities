@@ -28,6 +28,50 @@ _BAW_ADMINPASSWORD=""
 _BAW_BAW_APP_FILE=""
 _BAW_BAW_APP_CASE_FORCE=false
 
+usage () {
+  echo ""
+  echo -e "${_CLR_GREEN}usage: $_me
+    -n namespace
+    -b baw-name
+    -c cr-name 
+    -u admin-user
+    -p password
+    -a app-file
+    -f force-case
+    ${_CLR_NC}"
+}
+
+
+#--------------------------------------------------------
+# read command line params
+while getopts c:p:s:v:d:mt flag
+do
+    case "${flag}" in
+        n) _BAW_DEPL_NAMESPACE=${OPTARG};;
+        b) _BAW_DEPL_NAME=${OPTARG};;
+        c) _CR_NAME=${OPTARG};;
+        u) _BAW_ADMINUSER=${OPTARG};;
+        p) _BAW_ADMINPASSWORD=${OPTARG};;
+        t) _BAW_BAW_APP_FILE=${OPTARG};;
+        f) _BAW_BAW_APP_CASE_FORCE=true;;
+        \?) # Invalid option
+            usage
+            exit 1;;        
+    esac
+done
+
+if [[ -z "${_CFG}" ]]; then
+  usage
+  exit 1
+fi
+
+if [[ ! -f "${_CFG}" ]]; then
+  echo "Configuration file not found: "${_CFG}
+  usage
+  exit 1
+fi
+
+
 installApplication () {
 
   _BAW_EXTERNAL_BASE_URL=$(oc get ICP4ACluster -n ${_BAW_DEPL_NAMESPACE} ${_CR_NAME} -o jsonpath='{.status.endpoints}' | jq '.[] | select(.scope == "External") | select(.name | contains("base URL for '${_BAW_DEPL_NAME}'"))' | jq .uri | sed 's/"//g')
@@ -61,15 +105,13 @@ installApplication () {
 
 }
 
-echo "LOCAL TEST"
-exit
-
-# to be updated
-_BAW_DEPL_NAMESPACE="cp4ba-wfps-baw-pfs-demo"
-_BAW_DEPL_NAME="baw1"
-_CR_NAME="wfps-demo"
-_BAW_ADMINUSER=cp4admin
-_BAW_ADMINPASSWORD=dem0s
-_BAW_BAW_APP_FILE="/home/marco/cp4ba-projects/cp4ba-wfps/apps/SimpleDemoBawWfPS.zip"
+if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]] || [[ -z "${_BAW_BAW_APP_FILE}" ]]; then
+  usage
+  exit 1
+fi
+if [[ ! -f "${_BAW_BAW_APP_FILE}" ]]; then
+  echo "Application file not found: "${_BAW_BAW_APP_FILE}
+  exit 1
+fi
 
 installApplication
