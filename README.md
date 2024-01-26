@@ -22,4 +22,4 @@ Utilities for IBM Cloud Pak® for Business Automation
 
 4. cp4ba-baw-applications.sh (* incomplete...)
 
-    Applications management (deploy/activate/deactivate/undeploy)
+    Applications management (list/deploy/activate/deactivate/undeploy)

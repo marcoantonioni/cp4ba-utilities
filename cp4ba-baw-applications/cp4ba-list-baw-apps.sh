@@ -22,8 +22,7 @@ _BAW_DEPL_NAME=""
 _CR_NAME=""
 _BAW_ADMINUSER=""
 _BAW_ADMINPASSWORD=""
-_BAW_BAW_APP_FILE=""
-_BAW_BAW_APP_CASE_FORCE=false
+_DETAILS=false
 
 usage () {
   echo ""
@@ -33,14 +32,13 @@ usage () {
     -c cr-name 
     -u admin-user
     -p password
-    -a app-file
-    -f force-case${_CLR_NC}"
+    -d detailed-output${_CLR_NC}"
 }
 
 
 #--------------------------------------------------------
 # read command line params
-while getopts n:b:c:u:p:a:f flag
+while getopts n:b:c:u:p:d flag
 do
     case "${flag}" in
         n) _BAW_DEPL_NAMESPACE=${OPTARG};;
@@ -48,14 +46,13 @@ do
         c) _CR_NAME=${OPTARG};;
         u) _BAW_ADMINUSER=${OPTARG};;
         p) _BAW_ADMINPASSWORD=${OPTARG};;
-        a) _BAW_BAW_APP_FILE=${OPTARG};;
-        f) _BAW_BAW_APP_CASE_FORCE=true;;
+        d) _DETAILS=true;;
     esac
 done
 
-installApplication () {
+listApplications () {
 
-  echo "Installing application file: ${_BAW_BAW_APP_FILE}"
+  echo "List applications"
   _BAW_EXTERNAL_BASE_URL=$(oc get ICP4ACluster -n ${_BAW_DEPL_NAMESPACE} ${_CR_NAME} -o jsonpath='{.status.endpoints}' | jq '.[] | select(.scope == "External") | select(.name | contains("base URL for '${_BAW_DEPL_NAME}'"))' | jq .uri | sed 's/"//g')
 
   LOGIN_URI="${_BAW_EXTERNAL_BASE_URL}ops/system/login"
@@ -68,40 +65,35 @@ installApplication () {
   done
 
   echo ""
-  echo "Deploying app..."
-  _INSTALL_CMD="ops/std/bpm/containers/install?inactive=false%26caseOverwrite=${_BAW_BAW_APP_CASE_FORCE}"
-  INST_RESPONSE=$(curl -sk -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -H 'accept: application/json' -H 'BPMCSRFToken: '${_CSRF_TOKEN} -H 'Content-Type: multipart/form-data' -F 'install_file=@'${_BAW_BAW_APP_FILE}';type=application/x-zip-compressed' -X POST "${_BAW_EXTERNAL_BASE_URL}${_INSTALL_CMD}")
-  INST_DESCR=$(echo ${INST_RESPONSE} | jq .description 2>/dev/null | sed 's/"//g')
-  INST_URL=$(echo ${INST_RESPONSE} | jq .url 2>/dev/null | sed 's/"//g')
+  echo "List of applications and toolkit"
+  _LIST_CMD="ops/std/bpm/containers"
+  _APPS=$(curl -sk -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -H 'accept: application/json' -H 'BPMCSRFToken: '${_CSRF_TOKEN} -H 'Content-Type: multipart/form-data' -X GET "${_BAW_EXTERNAL_BASE_URL}${_LIST_CMD}")
 
-  echo "Request result: "${INST_DESCR}
-  sleep 2
-  echo "Get installation status at url: ${INST_URL}"
-  if [[ ! -z "${INST_URL}" ]]; then
-    while [ true ]
-    do
-      INST_STATE=$(curl -sk -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -H 'accept: application/json' -H 'BPMCSRFToken: '${_CSRF_TOKEN} -X GET ${INST_URL} | jq .state | sed 's/"//g')
-      if [[ ${INST_STATE} == "running" ]]; then
-        sleep 2
-      else
-        echo ""
-        echo "Final installation state: "${INST_STATE}
-        break
-      fi
-    done
+  if [[ "${_DETAILS}" = "true" ]]; then
+    echo ${_APPS} | jq .[]
   else
-    echo "ERROR during installation ${INST_DESCR}"
-  fi
+    echo "Ctr. acronym - Name"
+    echo "------------------------"
+
+    for row in $(echo "${_APPS}" | jq -r '.containers[] | @base64'); do
+        _jq() {
+          
+          _APP_NAME=$(echo ${row} | base64 --decode | jq -r ".container_name")
+          _APP_CTR=$(echo ${row} | base64 --decode | jq -r ".container")
+          # _APP_DES=$(echo ${row} | base64 --decode | jq -r ".description")
+
+          # echo "${_APP_NAME}, ${_APP_CTR}, ${_APP_DES}" | sed 's/"//g'
+          echo "${_APP_CTR} - ${_APP_NAME}" | sed 's/"//g'
+        }
+      echo $(_jq '.container_name')
+    done
+  fi  
 }
 
-if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]] || [[ -z "${_BAW_BAW_APP_FILE}" ]]; then
+if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]]; then
   echo "ERROR: Empty values for required parameter"
   usage
   exit 1
 fi
-if [[ ! -f "${_BAW_BAW_APP_FILE}" ]]; then
-  echo "Application file not found: "${_BAW_BAW_APP_FILE}
-  exit 1
-fi
 
-installApplication
+listApplications
