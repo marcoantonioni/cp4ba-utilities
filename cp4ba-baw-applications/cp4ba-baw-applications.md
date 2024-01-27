@@ -2,9 +2,9 @@
 
 Common vars
 ```
-_NS="cp4ba-baw-double-pfs"
-_BAW_NAME="baw1"
-_CR_NAME="baw-double-pfs"
+_NS="your-namespace"
+_BAW_NAME="baw-instance-name"
+_CR_NAME="cr-icp4a-name"
 ```
 
 ## 1. Deploy application
@@ -67,6 +67,12 @@ Force undeploy (you must deactivate it before run this command)
 ```
 
 ## 6. Update Team Bindings
+Add users/groups
+```
+./cp4ba-baw-update-team-bindings.sh -n ${_NS} -b ${_BAW_NAME} -c ${_CR_NAME} -u cp4admin -p dem0s -a SDWPSBA -v 0.7 -t ./configs/team-bindings-app-1.properties
+
+```
+Forces removal of the previous configuration then add users/groups
 ```
 ./cp4ba-baw-update-team-bindings.sh -n ${_NS} -b ${_BAW_NAME} -c ${_CR_NAME} -u cp4admin -p dem0s -a SDWPSBA -v 0.7 -t ./configs/team-bindings-app-1.properties -r
 
