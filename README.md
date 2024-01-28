@@ -2,7 +2,7 @@
 
 Utilities for IBM Cloud Pak® for Business Automation
 
-<i>Last update: 2024-01-27</i>
+<i>Last update: 2024-01-28</i>
 
 ```
 > main always unstable
@@ -20,6 +20,6 @@ Utilities for IBM Cloud Pak® for Business Automation
 
     Sequence of operations to configure BAStudio with GIT for CI/CD.
 
-4. cp4ba-baw-applications.sh (* incomplete...)
+4. cp4ba-baw-applications.sh (Workflow / Case)
 
     Applications management (list/deploy/activate/deactivate/undeploy/teambindings)

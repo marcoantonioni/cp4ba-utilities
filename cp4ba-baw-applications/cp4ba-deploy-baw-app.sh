@@ -24,6 +24,9 @@ _BAW_ADMINUSER=""
 _BAW_ADMINPASSWORD=""
 _BAW_BAW_APP_FILE=""
 _BAW_BAW_APP_CASE_FORCE=false
+_BAW_DESIGN_OS=""
+_BAW_TARGET_ENV=""
+_IS_CASE_SOL=false
 
 usage () {
   echo ""
@@ -34,13 +37,15 @@ usage () {
     -u admin-user
     -p password
     -a app-file
+    -d design-object-store
+    -e target-environment
     -f force-case${_CLR_NC}"
 }
 
 
 #--------------------------------------------------------
 # read command line params
-while getopts n:b:c:u:p:a:f flag
+while getopts n:b:c:u:p:a:d:e:f flag
 do
     case "${flag}" in
         n) _BAW_DEPL_NAMESPACE=${OPTARG};;
@@ -50,6 +55,8 @@ do
         p) _BAW_ADMINPASSWORD=${OPTARG};;
         a) _BAW_BAW_APP_FILE=${OPTARG};;
         f) _BAW_BAW_APP_CASE_FORCE=true;;
+        d) _BAW_DESIGN_OS=${OPTARG};;
+        e) _BAW_TARGET_ENV=${OPTARG};;
     esac
 done
 
@@ -68,8 +75,16 @@ installApplication () {
   done
 
   echo ""
-  echo "Deploying app..."
-  _INSTALL_CMD="ops/std/bpm/containers/install?inactive=false%26caseOverwrite=${_BAW_BAW_APP_CASE_FORCE}"
+  _CASE_ATTRS=""
+  if [[ "${_IS_CASE_SOL}" = "true" ]]; then
+    _CASE_ATTRS="&caseDosName=${_BAW_DESIGN_OS}&caseProjectArea=${_BAW_TARGET_ENV}"
+    echo "Deploying case solution application"
+  else
+    echo "Deploying workflow application"
+  fi
+
+
+  _INSTALL_CMD="ops/std/bpm/containers/install?inactive=false%26caseOverwrite=${_BAW_BAW_APP_CASE_FORCE}${_CASE_ATTRS}"
   INST_RESPONSE=$(curl -sk -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -H 'accept: application/json' -H 'BPMCSRFToken: '${_CSRF_TOKEN} -H 'Content-Type: multipart/form-data' -F 'install_file=@'${_BAW_BAW_APP_FILE}';type=application/x-zip-compressed' -X POST "${_BAW_EXTERNAL_BASE_URL}${_INSTALL_CMD}")
   INST_DESCR=$(echo ${INST_RESPONSE} | jq .description 2>/dev/null | sed 's/"//g')
   INST_URL=$(echo ${INST_RESPONSE} | jq .url 2>/dev/null | sed 's/"//g')
@@ -94,7 +109,17 @@ installApplication () {
   fi
 }
 
-if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]] || [[ -z "${_BAW_BAW_APP_FILE}" ]]; then
+if [[ ! -z "${_BAW_DESIGN_OS}" ]] || [[ ! -z "${_BAW_TARGET_ENV}" ]]; then
+  _IS_CASE_SOL=true
+fi
+if [[ "${_IS_CASE_SOL}" = "true" ]]; then
+  if [[ -z "${_BAW_DESIGN_OS}" ]] || [[ -z "${_BAW_TARGET_ENV}" ]]; then 
+    # force error
+    _BAW_DEPL_NAMESPACE=""
+  fi
+fi
+if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || 
+   [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]] || [[ -z "${_BAW_BAW_APP_FILE}" ]]; then
   echo "ERROR: Empty values for required parameter"
   usage
   exit 1
