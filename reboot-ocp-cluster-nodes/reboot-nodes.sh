@@ -26,6 +26,7 @@ done
 listNodes () {
   _NT=$1
   _FILE=$2
+  _FILE2="${_FILE}-2"
 
   if [[ -z "${_FILE}" ]]; then
     echo "ERROR: no file name"
@@ -34,8 +35,15 @@ listNodes () {
   if [[ "worker" = "${_NT}" ]] || [[ "master" = "${_NT}" ]]; then
     echo "" > ${_FILE}
     oc get nodes --no-headers | grep ${_NT} | awk '{print $1"\n"}' | xargs echo >> ${_FILE}
-    sed 's/ /\n/g' -i ${_FILE}
-    sed '/^$/d' -i ${_FILE}
+    
+    # because of 'sed -i' in Darwin platform
+    # sed 's/ /\n/g' -i ${_FILE}
+    # sed '/^$/d' -i ${_FILE}
+
+    cat ${_FILE} | sed 's/ /\n/g' > ${_FILE2}
+    cat ${_FILE2} | sed '/^$/d' > ${_FILE}
+    rm ${_FILE2}
+
   else
     echo "ERROR: node type must be 'worker' or 'master'"
     exit
@@ -74,7 +82,7 @@ rebootNodes () {
 oc project default
 DELAY_BEFORE_REBOOT=5
 DELAY_AFTER_REBOOT=60
-TMP_OUT_FILE="./nodes-list"
+TMP_OUT_FILE="/tmp/cp4ba-utils-nodes-$USER-$RANDOM"
 
 echo "#======================================="
 echo "Reboot nodes: workers[${_WORKERS}] control[${_CTRL_PLANE}]"

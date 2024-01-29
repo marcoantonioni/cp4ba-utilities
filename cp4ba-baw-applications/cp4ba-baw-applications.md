@@ -106,6 +106,13 @@ https://cpd-cp4ba-baw-double-pfs.apps.subdomain.cloud.techzone.ibm.com/baw-baw1/
 
 
 # To Be Implemented
+
+https://www.ibm.com/docs/en/baw/23.x?topic=solutions-developing-case-management-applications-rest-protocols
+https://www.ibm.com/docs/en/baw/23.x?topic=dcmarp-creating-managing-case-objects-by-using-workflow-rest-protocol
+https://www.ibm.com/support/pages/collect-troubleshooting-data-snapshot-deployment-and-repository-problems-ibm-business-automation-workflow-baw
+https://www.ibm.com/support/pages/examples-interacting-case-manager-using-rest-api-and-cmis
+
+
 ```
 
 # lista soluzioni
@@ -130,12 +137,31 @@ curl -X 'GET' \
   ]
 }
 
+# object stores associati
+curl -X 'GET' \
+  'https://cpd-cp4ba-baw-double-pfs.apps.65800a760763df0011005ecb.cloud.techzone.ibm.com/baw-baw1/CaseManager/CASEREST/v2/solution/DCWD/associatedobjectstores' \
+  -H 'accept: application/json' \
+  -H 'BPMCSRFToken: eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MDY1MTY1OTIsInN1YiI6ImNwNGFkbWluIn0.6XsVGlWgdEvfpmMZTpXFK-rT0O1uoaHMUkzr7hTYvPE'
+
+{
+  "DesignObjectStore": "BAWINS1DOS",
+  "TargetObjectStore": [
+    "BAWINS1TOS"
+  ]
+}
+
 # deploy
 curl -X 'POST' \
   'https://cpd-cp4ba-baw-double-pfs.apps.subdomain.cloud.techzone.ibm.com/baw-baw1/CaseManager/CASEREST/v2/solutions?solutionAcronym=DCWD&ConnectionDefinitionName=target_env' \
   -H 'accept: application/json' \
   -H 'BPMCSRFToken: ey....' \
   -d ''
+
+{
+  "Status": "Initiated",
+  "Error Info": "NONE",
+  "SolutionName": "DemoCaseWorkflowDocuments"
+}
 
 # depl status
 curl -X 'GET' \
@@ -241,29 +267,152 @@ curl -X 'GET' \
   ]
 }
 
-# start case
+# start case (use: CaseProperties and NOT Properties)
 
 curl -X 'POST' \
-  'https://cpd-cp4ba-baw-double-pfs.apps.subdomain.cloud.techzone.ibm.com/baw-baw1/CaseManager/CASEREST/v2/case' \
+  'https://cpd-cp4ba-baw-double-pfs.apps.65800a760763df0011005ecb.cloud.techzone.ibm.com/baw-baw1/CaseManager/CASEREST/v2/case' \
   -H 'accept: application/json' \
-  -H 'BPMCSRFToken: ey....' \
+  -H 'BPMCSRFToken: eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MDY1MTY1OTIsInN1YiI6ImNwNGFkbWluIn0.6XsVGlWgdEvfpmMZTpXFK-rT0O1uoaHMUkzr7hTYvPE' \
   -H 'Content-Type: application/json' \
   -d '{
   "TargetObjectStore": "BAWINS1TOS",
   "CaseType": "DCWD_GestioneRichiesta",
-  "ReturnUpdates": false,
-  "Properties": [
+  "CaseProperties": [
     {
       "SymbolicName": "DCWD_DescrizioneRichiesta",
-      "Value": "Marco"
+      "Data": {
+        "Value": "This is a test"
+      }
     },
     {
+      "SymbolicName": "DCWD_DataLimite",
+      "Data": {
+        "Value": null
+      }
+    },
+    {
+      "SymbolicName": "DCWD_AvviaGestioneRichiesta",
+      "Data": {
+        "Cardinality": "single",
+        "Value": true
+      }
+    },    {
       "SymbolicName": "DCWD_TipoRichiesta",
-      "Value": "T_A"
+      "Data": {
+        "Value": "T_A"
+      }
     }
   ]
 }
 '
+
+{
+  "CaseIdentifier": "DCWD_GestioneRichiesta_000000110004",
+  "CaseTitle": "DCWD_GestioneRichiesta_000000110004",
+  "CaseFolderId": "{8D541120-0000-C188-A30B-632370225633}"
+}
+
+# retrieve all stages (usare valore CaseFolderId senza graffe)
+
+curl -X 'GET' \
+  'https://cpd-cp4ba-baw-double-pfs.apps.65800a760763df0011005ecb.cloud.techzone.ibm.com/baw-baw1/CaseManager/CASEREST/v2/case/8D541120-0000-C188-A30B-632370225633/stages/retrieveAllStages?TargetObjectStore=BAWINS1TOS' \
+  -H 'accept: application/json' \
+  -H 'BPMCSRFToken: eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MDY1MTY1OTIsInN1YiI6ImNwNGFkbWluIn0.6XsVGlWgdEvfpmMZTpXFK-rT0O1uoaHMUkzr7hTYvPE'
+
+{
+  "stages": [
+    {
+      "Status": "WORKING",
+      "Description": null,
+      "expectedDurationUnitType": 0,
+      "timeSpent": 24,
+      "displayName": "Inoltro",
+      "estimatedStartDate": null,
+      "dueDate": null,
+      "startedDate": "2024-01-29T07:13:52Z",
+      "SymbolicName": "Inoltro",
+      "completedDate": null,
+      "RestartCount": 0,
+      "isOverdue": false,
+      "expectedDurationUnitCount": 0,
+      "overdueTime": 0,
+      "estimatedCompleteDate": null
+    },
+    {
+      "Status": "WAITING",
+      "Description": null,
+      "expectedDurationUnitType": 0,
+      "timeSpent": 0,
+      "displayName": "Lavorazione",
+      "estimatedStartDate": null,
+      "dueDate": null,
+      "startedDate": null,
+      "SymbolicName": "Lavorazione",
+      "completedDate": null,
+      "RestartCount": 0,
+      "isOverdue": false,
+      "expectedDurationUnitCount": 0,
+      "overdueTime": 0,
+      "estimatedCompleteDate": null
+    },
+    {
+      "Status": "WAITING",
+      "Description": null,
+      "expectedDurationUnitType": 0,
+      "timeSpent": 0,
+      "displayName": "Validazione",
+      "estimatedStartDate": null,
+      "dueDate": null,
+      "startedDate": null,
+      "SymbolicName": "Validazione",
+      "completedDate": null,
+      "RestartCount": 0,
+      "isOverdue": false,
+      "expectedDurationUnitCount": 0,
+      "overdueTime": 0,
+      "estimatedCompleteDate": null
+    }
+  ]
+}
+
+# current stage
+
+curl -X 'GET' \
+  'https://cpd-cp4ba-baw-double-pfs.apps.65800a760763df0011005ecb.cloud.techzone.ibm.com/baw-baw1/CaseManager/CASEREST/v2/case/8D541120-0000-C188-A30B-632370225633/stages/retrieveCurrentStage?TargetObjectStore=BAWINS1TOS' \
+  -H 'accept: application/json' \
+  -H 'BPMCSRFToken: eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MDY1MTY1OTIsInN1YiI6ImNwNGFkbWluIn0.6XsVGlWgdEvfpmMZTpXFK-rT0O1uoaHMUkzr7hTYvPE'
+
+{
+  "Status": "WORKING",
+  "Description": null,
+  "expectedDurationUnitType": 0,
+  "timeSpent": 26,
+  "displayName": "Inoltro",
+  "estimatedStartDate": null,
+  "dueDate": null,
+  "startedDate": "2024-01-29T07:13:52Z",
+  "SymbolicName": "Inoltro",
+  "completedDate": null,
+  "RestartCount": 0,
+  "isOverdue": false,
+  "expectedDurationUnitCount": 0,
+  "overdueTime": 0,
+  "estimatedCompleteDate": null
+}
+
+# complete current stage
+
+curl -X 'POST' \
+  'https://cpd-cp4ba-baw-double-pfs.apps.65800a760763df0011005ecb.cloud.techzone.ibm.com/baw-baw1/CaseManager/CASEREST/v2/case/8D541120-0000-C188-A30B-632370225633/stages/completeCurrentStage?TargetObjectStore=BAWINS1TOS' \
+  -H 'accept: application/json' \
+  -H 'BPMCSRFToken: eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MDY1MTY1OTIsInN1YiI6ImNwNGFkbWluIn0.6XsVGlWgdEvfpmMZTpXFK-rT0O1uoaHMUkzr7hTYvPE' \
+  -d ''
+
+{
+  "completeStageResult": true
+}
+
+
 
 ```
 
