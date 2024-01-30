@@ -82,6 +82,11 @@ deleteCp4baNamespace () {
     oc delete ICP4ACluster -n ${TNS} ${CR_NAME} 2> /dev/null
   fi
 
+  CR_NAME=$(oc get Content -n ${TNS} --no-headers  2> /dev/null | awk '{print $1}')
+  if [[ ! -z "${CR_NAME}" ]]; then
+    oc delete Content -n ${TNS} ${CR_NAME} 2> /dev/null
+  fi
+
   for _type in "${_pakResources[@]}"
   do
     deleteObject ${TNS} ${_type}
