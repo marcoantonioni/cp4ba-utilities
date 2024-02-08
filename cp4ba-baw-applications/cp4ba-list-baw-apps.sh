@@ -129,7 +129,8 @@ listAppVersions () {
         }
       echo $(_jq '.version')
     done
-  fi  }
+  fi  
+}
 
 if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]]; then
   echo "ERROR: Empty values for required parameter"

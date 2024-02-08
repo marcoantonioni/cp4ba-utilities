@@ -2,7 +2,7 @@
 
 Utilities for IBM Cloud Pak® for Business Automation
 
-<i>Last update: 2024-01-29</i>
+<i>Last update: 2024-02-08</i>
 
 
 1. cp4ba-remove-namespace.sh
