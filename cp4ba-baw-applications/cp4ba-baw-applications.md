@@ -95,6 +95,28 @@ Forces removal of the previous configuration then add users/groups
 
 ```
 
+## 7. Applications from BAStudio
+
+### 7.x List application versions
+```
+curl -X 'GET' \
+  'https://cpd-cp4ba-all-but-adp-odm.apps.65bb6be8d300f00011674065.cloud.techzone.ibm.com/bas/ops/std/bpm/containers/HSS/versions' \
+  -H 'accept: application/json' \
+  -H 'BPMCSRFToken: eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MDczOTYyMDEsInN1YiI6ImNwNGFkbWluIn0.znedYthdb5ArP24_Ijdzujy2ErvQrzvOsM_ZCLj_Us8' \
+  -H 'authorization: Basic Y3A0YWRtaW46VWF1R1hQUkdlVjA4a0hDQ3hiQmM='
+```
+
+### 7.x Export application
+```
+_BAS_URL=https://cpd-cp4ba-all-but-adp-odm.apps.65bb6be8d300f00011674065.cloud.techzone.ibm.com/bas
+_APP_NAME=HSS
+_APP_ACRONYM=RHSV180
+_BAS_ADMIN=cp4admin
+_BAS_ADMIN_PWD=UauGXPRGeV08kHCCxbBc
+_OUTPUT=./apps/${_APP_NAME}_${_APP_ACRONYM}.zip
+./cp4ba-export-baw-app.sh -s ${_BAS_URL} -n ${_APP_NAME} -a ${_APP_ACRONYM} -u ${_BAS_ADMIN} -p ${_BAS_ADMIN_PWD} -f ${_OUTPUT}
+```
+
 # IBM Business Automation Workflow Case REST Interface
 Navigate to
 
