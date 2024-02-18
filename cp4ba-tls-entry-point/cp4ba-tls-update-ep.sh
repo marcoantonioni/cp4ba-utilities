@@ -1,21 +1,10 @@
 #!/bin/bash
 
-_CLR_OFF="\033[0m"     # Color off
-_CLR_BLNK="\033[5m"    # Blink
-_CLR_BLU="\033[0;34m"  # Blue
-_CLR_CYN="\033[0;36m"  # Cyan
-_CLR_GRN="\033[0;32m"  # Green
-_CLR_PPL="\033[0;35m"  # Purple
-_CLR_RED="\033[0;31m"  # Red
-_CLR_WHT="\033[0;37m"  # White
-_CLR_YLW="\033[0;33m"  # Yellow
-_CLR_BBLU="\033[1;34m" # Bold Blue
-_CLR_BCYN="\033[1;36m" # Bold Cyan
-_CLR_BGRN="\033[1;32m" # Bold Green
-_CLR_BPPL="\033[1;35m" # Bold Purple
-_CLR_BRED="\033[1;31m" # Bold Red
-_CLR_BWHT="\033[1;37m" # Bold White
-_CLR_BYLW="\033[1;33m" # Bold Yellow
+_CLR_RED="\033[0;31m"   #'0;31' is Red's ANSI color code
+_CLR_GREEN="\033[0;32m"   #'0;32' is Green's ANSI color code
+_CLR_YELLOW="\033[1;32m"   #'1;32' is Yellow's ANSI color code
+_CLR_BLUE="\033[0;34m"   #'0;34' is Blue's ANSI color code
+_CLR_NC="\033[0m"
 
 _ECHO=0
 _TARGET_NAMESPACE=""
@@ -32,6 +21,7 @@ usage () {
     -s target-new-secret-name 
     -f source-secret-name
     -k source-secret-namespace
+    -x no-wait-after-update
     -w wait-progress
     ${_CLR_NC}"
 }
@@ -42,10 +32,11 @@ _EXIST_SOURCE_SECRET=0
 _EXIST_TARGET_SECRET=0
 _EXIST_TARGET_ZEN_SERVICE=0
 _WAIT_PROGRESS=false
+_NO_WAIT_PROGRESS=false
 
 #--------------------------------------------------------
 # read command line params
-while getopts n:z:s:f:k:w flag
+while getopts n:z:s:f:k:wx flag
 do
     case "${flag}" in
         n) _TARGET_NAMESPACE=${OPTARG};;
@@ -54,6 +45,7 @@ do
         f) _SOURCE_SECRET_NAME=${OPTARG};;
         k) _SOURCE_SECRET_NAMESPACE=${OPTARG};;
         w) _WAIT_PROGRESS=true;;
+        x) _NO_WAIT_PROGRESS=true;;
     esac
 done
 
@@ -163,17 +155,26 @@ applySecretToZenService() {
 }
 
 waitForProgress() {
+  _ENTRY=1
   while [ true ]
   do
     _PROGRESS=$(oc get zenservice -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} -o jsonpath='{.status.Progress}')
-    if [[ ${_PROGRESS} = "100%" ]]; then
-      echo ""
-      echo "Progress completed"
-      break
-    else
-      echo -e -n "${_CLR_GREEN}Progress '${_CLR_YELLOW}${_PROGRESS}${_CLR_GREEN}' ${_CLR_NC}\033[0K\r"
+    if [[ ${_PROGRESS} = "100%" ]] && [[ $_ENTRY -eq 1 ]]; then
+      _PROGRESS="0%"
+      echo -e -n "${_CLR_GREEN}Wait operator${_CLR_NC}\033[0K\r"
       sleep 5
+      echo -e -n "              \033[0K\r"
+    else
+      if [[ ${_PROGRESS} = "100%" ]]; then
+        echo "Progress completed"
+        break
+      else
+        _ENTRY=0
+        echo -e -n "${_CLR_GREEN}Progress '${_CLR_YELLOW}${_PROGRESS}${_CLR_GREEN}' ${_CLR_NC}\033[0K\r"
+        sleep 5
+      fi
     fi
+
   done
 }
 
@@ -204,6 +205,9 @@ else
   existTargetSecret
   if [[ $_EXIST_TARGET_SECRET -eq 1  ]]; then
     applySecretToZenService
+    if [[ $_NO_WAIT_PROGRESS -eq 0 ]]; then
+      waitForProgress
+    fi
   fi
 fi
 
