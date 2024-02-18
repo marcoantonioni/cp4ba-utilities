@@ -21,6 +21,6 @@ Utilities for IBM Cloud Pak® for Business Automation
 
     Applications management (list/deploy/activate/deactivate/undeploy/teambindings)
 
-5. cp4ba-tls-update-ep.sh
+5. [cp4ba-tls-entry-point](/cp4ba-tls-entry-point/cp4ba-tls-entry-point.md)
 
     Update ZenService endpoint TLS certificate

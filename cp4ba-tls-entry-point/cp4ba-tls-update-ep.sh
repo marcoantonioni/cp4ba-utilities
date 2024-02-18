@@ -122,19 +122,19 @@ cloneSecretToTarget() {
 
   existTargetSecret
   if [[ $_EXIST_TARGET_SECRET -eq 1 ]]; then
-    oc delete secret -n ${_TARGET_NAMESPACE} ${_TARGET_NEW_SECRET_NAME} 2>/dev/null
+    oc delete secret -n ${_TARGET_NAMESPACE} ${_TARGET_NEW_SECRET_NAME} 2>/dev/null 1>/dev/null
   fi
 
   oc -n ${_TARGET_NAMESPACE} create secret generic ${_TARGET_NEW_SECRET_NAME} \
     --from-file=tls.crt=/tmp/cp4ba-ep-cert-tls.crt \
     --from-file=tls.key=/tmp/cp4ba-ep-cert-tls.key \
     --from-file=ca.crt=/tmp/cp4ba-ep-cert-ca.crt \
-    --dry-run=client -o yaml | oc apply -f -
+    --dry-run=client -o yaml | oc apply -f - 2>/dev/null 1>/dev/null
 
-  rm /tmp/cp4ba-ep-cert-ca.crt
-  rm /tmp/cp4ba-ep-cert-tls.crt
-  rm /tmp/cp4ba-ep-cert-tls.key
-  rm /tmp/cp4ba-ep-dest.crt
+  rm /tmp/cp4ba-ep-cert-ca.crt 2>/dev/null
+  rm /tmp/cp4ba-ep-cert-tls.crt 2>/dev/null
+  rm /tmp/cp4ba-ep-cert-tls.key 2>/dev/null
+  rm /tmp/cp4ba-ep-dest.crt 2>/dev/null
 }
 
 applySecretToZenService() {
@@ -147,9 +147,9 @@ applySecretToZenService() {
 
     oc patch ZenService -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} --type='json' -p='[{"op": "add", "path": "/spec/zenCustomRoute","value":{"route_host":"'${_ROUTE_HOST}'","route_secret":"'${_TARGET_NEW_SECRET_NAME}'","route_reencrypt":true}}]'
 
-    echo "Route host '${_ROUTE_HOST}' updated with new secret '${_TARGET_NEW_SECRET_NAME}', old secret '${_OLD_SECRET}'"
+    echo "${_CLR_GREEN}Route host '${_CLR_YELLOW}${_ROUTE_HOST}${_CLR_GREEN}' updated with new secret '${_CLR_YELLOW}${_TARGET_NEW_SECRET_NAME}${_CLR_GREEN}', old secret '${_CLR_YELLOW}${_OLD_SECRET}${_CLR_GREEN}'${_CLR_NC}"
   else
-    echo "ERROR, zenservice '${_TARGET_ZEN_SERVICE_NAME}' not found in namespace '${_TARGET_NAMESPACE}'"
+    echo "${_CLR_RED}ERROR, zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
     exit 1
   fi
 }
@@ -166,7 +166,7 @@ waitForProgress() {
       echo -e -n "              \033[0K\r"
     else
       if [[ ${_PROGRESS} = "100%" ]]; then
-        echo "Progress completed"
+        echo "${_CLR_GREEN}Progress completed${_CLR_NC}"
         break
       else
         _ENTRY=0
@@ -187,17 +187,17 @@ if [[ $_OK_PARAMS -eq 0 ]]; then
 fi
 
 if [[ "${_WAIT_PROGRESS}" = "true" ]]; then
-  echo "Wait for ZenService update completion" 
+  echo -e "${_CLR_GREEN}Wait for ZenService update completion${_CLR_NC}" 
   waitForProgress
 else
-  echo "Apply certificate to ZenService" 
+  echo -e "${_CLR_GREEN}Apply certificate to ZenService${_CLR_NC}" 
   verifySourceSecret
   if [[ $_SOURCE_SECRET -eq 1 ]]; then
     existSourceSecret
     if [[ $_EXIST_SOURCE_SECRET -eq 1 ]]; then
       cloneSecretToTarget
     else
-      echo "ERROR, source secret '${_SOURCE_SECRET_NAME}' not found in namespace '${_SOURCE_SECRET_NAMESPACE}'"
+      echo "${_CLR_RED}ERROR, source secret '${_CLR_YELLOW}${_SOURCE_SECRET_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_SOURCE_SECRET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
       exit 1
     fi
   fi
