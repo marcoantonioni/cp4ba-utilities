@@ -20,3 +20,7 @@ Utilities for IBM Cloud Pak® for Business Automation
 4. cp4ba-baw-applications.sh (Workflow / Case)
 
     Applications management (list/deploy/activate/deactivate/undeploy/teambindings)
+
+5. cp4ba-tls-update-ep.sh
+
+    Update ZenService endpoint TLS certificate
