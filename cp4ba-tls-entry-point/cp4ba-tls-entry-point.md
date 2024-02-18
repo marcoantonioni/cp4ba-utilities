@@ -7,6 +7,7 @@ usage:
     -s target-new-secret-name 
     -f (optional) source-secret-name
     -k (optional) source-secret-namespace
+    -x (optional) no-wait-after-update
     -w (mutually exclusive with update operation) wait-progress
 ```
 
@@ -34,7 +35,7 @@ Optional when the secret to apply already exists in target namespace
 ./cp4ba-tls-update-ep.sh -n cp4ba-daffy-prod -z iaf-zen-cpdservice -s my-letsencrypt
 ```
 
-## Wait for update progress of ZenService entry point
+## Wait for update progress of ZenService entry point, for previous update command 
 
 ```
 ./cp4ba-tls-update-ep.sh -n cp4ba-daffy-prod -z iaf-zen-cpdservice -w
