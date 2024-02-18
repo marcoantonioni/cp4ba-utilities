@@ -147,9 +147,9 @@ applySecretToZenService() {
 
     oc patch ZenService -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} --type='json' -p='[{"op": "add", "path": "/spec/zenCustomRoute","value":{"route_host":"'${_ROUTE_HOST}'","route_secret":"'${_TARGET_NEW_SECRET_NAME}'","route_reencrypt":true}}]'
 
-    echo "${_CLR_GREEN}Route host '${_CLR_YELLOW}${_ROUTE_HOST}${_CLR_GREEN}' updated with new secret '${_CLR_YELLOW}${_TARGET_NEW_SECRET_NAME}${_CLR_GREEN}', old secret '${_CLR_YELLOW}${_OLD_SECRET}${_CLR_GREEN}'${_CLR_NC}"
+    echo -e "${_CLR_GREEN}Route host '${_CLR_YELLOW}${_ROUTE_HOST}${_CLR_GREEN}' updated with new secret '${_CLR_YELLOW}${_TARGET_NEW_SECRET_NAME}${_CLR_GREEN}', old secret '${_CLR_YELLOW}${_OLD_SECRET}${_CLR_GREEN}'${_CLR_NC}"
   else
-    echo "${_CLR_RED}ERROR, zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
+    echo -e "${_CLR_RED}ERROR, zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
     exit 1
   fi
 }
@@ -166,7 +166,7 @@ waitForProgress() {
       echo -e -n "              \033[0K\r"
     else
       if [[ ${_PROGRESS} = "100%" ]]; then
-        echo "${_CLR_GREEN}Progress completed${_CLR_NC}"
+        echo -e "${_CLR_GREEN}Progress completed${_CLR_NC}"
         break
       else
         _ENTRY=0
@@ -197,7 +197,7 @@ else
     if [[ $_EXIST_SOURCE_SECRET -eq 1 ]]; then
       cloneSecretToTarget
     else
-      echo "${_CLR_RED}ERROR, source secret '${_CLR_YELLOW}${_SOURCE_SECRET_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_SOURCE_SECRET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
+      echo -e "${_CLR_RED}ERROR, source secret '${_CLR_YELLOW}${_SOURCE_SECRET_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_SOURCE_SECRET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
       exit 1
     fi
   fi
@@ -211,4 +211,4 @@ else
   fi
 fi
 
-echo "Done"
+echo -e "${_CLR_GREEN}Done${_CLR_NC}"
