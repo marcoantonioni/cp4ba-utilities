@@ -112,13 +112,15 @@ existTargetZenService() {
 cloneSecretToTarget() {
   [[ $_ECHO -gt 0 ]] && echo "-> cloneSecretToTarget"
 
-  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.crt}' | base64 -d | awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {if(length($0) > 0) print > "/tmp/cp4ba-ep-cert" n ".pem"}'
+  _RND_="$USER-$RANDOM"
 
-  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/cp4ba-ep-cert-tls.key
+  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.crt}' | base64 -d | awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {if(length($0) > 0) print > "/tmp/cp4ba-ep-'${_RND_}'-cert" n ".pem"}'
 
-  oc get route -n ${_TARGET_NAMESPACE} cpd -o jsonpath='{.spec.tls.destinationCACertificate}' > /tmp/cp4ba-ep-dest.crt
-  mv /tmp/cp4ba-ep-cert1.pem /tmp/cp4ba-ep-cert-ca.crt
-  mv /tmp/cp4ba-ep-cert.pem /tmp/cp4ba-ep-cert-tls.crt
+  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/cp4ba-ep-${_RND_}-cert-tls.key
+
+  #oc get route -n ${_TARGET_NAMESPACE} cpd -o jsonpath='{.spec.tls.destinationCACertificate}' > /tmp/cp4ba-ep-${_RND_}-dest.crt
+  mv /tmp/cp4ba-ep-${_RND_}-cert1.pem /tmp/cp4ba-ep-${_RND_}-cert-ca.crt
+  mv /tmp/cp4ba-ep-${_RND_}-cert.pem /tmp/cp4ba-ep-${_RND_}-cert-tls.crt
 
   existTargetSecret
   if [[ $_EXIST_TARGET_SECRET -eq 1 ]]; then
@@ -126,15 +128,22 @@ cloneSecretToTarget() {
   fi
 
   oc -n ${_TARGET_NAMESPACE} create secret generic ${_TARGET_NEW_SECRET_NAME} \
-    --from-file=tls.crt=/tmp/cp4ba-ep-cert-tls.crt \
-    --from-file=tls.key=/tmp/cp4ba-ep-cert-tls.key \
-    --from-file=ca.crt=/tmp/cp4ba-ep-cert-ca.crt \
+    --from-file=tls.crt=/tmp/cp4ba-ep-${_RND_}-cert-tls.crt \
+    --from-file=tls.key=/tmp/cp4ba-ep-${_RND_}-cert-tls.key \
+    --from-file=ca.crt=/tmp/cp4ba-ep-${_RND_}-cert-ca.crt \
     --dry-run=client -o yaml | oc apply -f - 2>/dev/null 1>/dev/null
 
-  rm /tmp/cp4ba-ep-cert-ca.crt 2>/dev/null
-  rm /tmp/cp4ba-ep-cert-tls.crt 2>/dev/null
-  rm /tmp/cp4ba-ep-cert-tls.key 2>/dev/null
-  rm /tmp/cp4ba-ep-dest.crt 2>/dev/null
+  _ISSUER=$(openssl x509 -text -noout -in /tmp/cp4ba-ep-${_RND_}-cert-tls.crt | grep "Issuer:" | sed 's/^[ \t]*Issuer: //g')
+  _SUBJECT=$(openssl x509 -text -noout -in /tmp/cp4ba-ep-${_RND_}-cert-tls.crt | grep "Subject:" | sed 's/^[ \t]*Subject: //g')
+  _SAN=$(openssl x509 -text -noout -in /tmp/cp4ba-ep-${_RND_}-cert-tls.crt | grep "DNS:" | sed 's/^[ \t]*//g')
+  echo -e "${_CLR_GREEN}Certificate Issuer: '${_CLR_YELLOW}${_ISSUER}${_CLR_GREEN}'${_CLR_NC}"
+  echo -e "${_CLR_GREEN}Certificate Subject: '${_CLR_YELLOW}${_SUBJECT}${_CLR_GREEN}'${_CLR_NC}"
+  echo -e "${_CLR_GREEN}Certificate SAN: '${_CLR_YELLOW}${_SAN}${_CLR_GREEN}'${_CLR_NC}"
+
+  rm /tmp/cp4ba-ep-${_RND_}-cert-ca.crt 2>/dev/null
+  rm /tmp/cp4ba-ep-${_RND_}-cert-tls.crt 2>/dev/null
+  rm /tmp/cp4ba-ep-${_RND_}-cert-tls.key 2>/dev/null
+  #rm /tmp/cp4ba-ep-${_RND_}-dest.crt 2>/dev/null
 }
 
 applySecretToZenService() {
@@ -212,3 +221,4 @@ else
 fi
 
 echo -e "${_CLR_GREEN}Done${_CLR_NC}"
+exit 0
