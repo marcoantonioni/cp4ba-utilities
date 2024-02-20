@@ -118,7 +118,6 @@ cloneSecretToTarget() {
 
   oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/cp4ba-ep-${_RND_}-cert-tls.key
 
-  #oc get route -n ${_TARGET_NAMESPACE} cpd -o jsonpath='{.spec.tls.destinationCACertificate}' > /tmp/cp4ba-ep-${_RND_}-dest.crt
   mv /tmp/cp4ba-ep-${_RND_}-cert1.pem /tmp/cp4ba-ep-${_RND_}-cert-ca.crt
   mv /tmp/cp4ba-ep-${_RND_}-cert.pem /tmp/cp4ba-ep-${_RND_}-cert-tls.crt
 
@@ -143,7 +142,7 @@ cloneSecretToTarget() {
   rm /tmp/cp4ba-ep-${_RND_}-cert-ca.crt 2>/dev/null
   rm /tmp/cp4ba-ep-${_RND_}-cert-tls.crt 2>/dev/null
   rm /tmp/cp4ba-ep-${_RND_}-cert-tls.key 2>/dev/null
-  #rm /tmp/cp4ba-ep-${_RND_}-dest.crt 2>/dev/null
+
 }
 
 applySecretToZenService() {
@@ -154,8 +153,11 @@ applySecretToZenService() {
     _ROUTE_HOST=$(oc get -n ${_TARGET_NAMESPACE} zenservice ${_TARGET_ZEN_SERVICE_NAME} -o jsonpath='{.spec.zenCustomRoute.route_host}')
     _OLD_SECRET=$(oc get -n ${_TARGET_NAMESPACE} zenservice ${_TARGET_ZEN_SERVICE_NAME} -o jsonpath='{.spec.zenCustomRoute.route_secret}')
 
-    oc patch ZenService -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} --type='json' -p='[{"op": "add", "path": "/spec/zenCustomRoute","value":{"route_host":"'${_ROUTE_HOST}'","route_secret":"'${_TARGET_NEW_SECRET_NAME}'","route_reencrypt":true}}]'
-
+    oc patch ZenService -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} --type='json' -p='[{"op": "add", "path": "/spec/zenCustomRoute","value":{"route_host":"'${_ROUTE_HOST}'","route_secret":"'${_TARGET_NEW_SECRET_NAME}'","route_reencrypt":true}}]' 2>/dev/null 1>/dev/null
+    if [[ $? -ne 0 ]]; then
+      echo -e "${_CLR_RED}ERROR, patching zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
+      exit 1
+    fi
     echo -e "${_CLR_GREEN}Route host '${_CLR_YELLOW}${_ROUTE_HOST}${_CLR_GREEN}' updated with new secret '${_CLR_YELLOW}${_TARGET_NEW_SECRET_NAME}${_CLR_GREEN}', old secret '${_CLR_YELLOW}${_OLD_SECRET}${_CLR_GREEN}'${_CLR_NC}"
   else
     echo -e "${_CLR_RED}ERROR, zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
@@ -214,11 +216,10 @@ else
   existTargetSecret
   if [[ $_EXIST_TARGET_SECRET -eq 1  ]]; then
     applySecretToZenService
-    if [[ $_NO_WAIT_PROGRESS -eq 0 ]]; then
+    if [[ "${_NO_WAIT_PROGRESS}" = "false" ]]; then
       waitForProgress
     fi
   fi
 fi
 
-echo -e "${_CLR_GREEN}Done${_CLR_NC}"
 exit 0
