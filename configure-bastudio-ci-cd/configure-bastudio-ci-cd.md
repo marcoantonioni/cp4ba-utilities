@@ -80,6 +80,7 @@ oc create secret generic -n ${_BASTUDIO_NAMESPACE} ${_GIT_AUTH_SECRET_NAME} --fr
 
 # !!! (optional) delete file wth your access token from your local storage
 rm ${_GIT_AUTH_DATA_FILE}
+rm ${_GIT_CERT_FILE}
 ```
 
 ### 3.2 tls secret
