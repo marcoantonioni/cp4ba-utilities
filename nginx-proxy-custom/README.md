@@ -61,4 +61,7 @@ oc expose deployment ${RES_NAME} --port=8080
 
 ```
 tail -n 1000 -f /var/log/nginx/postdata.log
+
+echo "This is a test buffer !" > /tmp/file1.txt
+curl -v -k -H 'accept: */*' -H 'Content-Type: multipart/form-data' -F 'files=@/tmp/file1.txt;type=text/plain' -X 'POST' http://nginx-proxy-custom:8080/upload
 ```
