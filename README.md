@@ -2,7 +2,7 @@
 
 Utilities for IBM Cloud Pak® for Business Automation
 
-<i>Last update: 2024-02-18</i>
+<i>Last update: 2024-04-22</i>
 
 
 1. cp4ba-remove-namespace.sh
@@ -24,3 +24,7 @@ Utilities for IBM Cloud Pak® for Business Automation
 5. [cp4ba-tls-entry-point](/cp4ba-tls-entry-point/cp4ba-tls-entry-point.md)
 
     Update ZenService endpoint TLS certificate
+
+6. [nginx-proxy-custom](/nginx-proxy-custom/README.md)
+
+    Proxy used to log content and headers sent by BPMRESTRequest (BAW service) or other OpenAPI implementations 
