@@ -2,12 +2,14 @@
 
 Utilities for IBM Cloud Pak® for Business Automation
 
-<i>Last update: 2024-04-22</i>
+<i>Last update: 2024-07-02</i>
 
 
 1. cp4ba-remove-namespace.sh
 
     Removes contents and deletes a namespace. Cleans all CP4BA resources on its own.
+    
+    Updated for v24.x
 
 2. reboot-nodes.sh
 
