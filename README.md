@@ -27,6 +27,8 @@ Utilities for IBM Cloud Pak® for Business Automation
 
     Update ZenService endpoint TLS certificate
 
+    See: [Custom Cloud Pak Platform UI (Zen) Route and certificates](https://www.ibm.com/docs/en/cloud-paks/1.0?topic=ac-custom-cloud-pak-platform-ui-zen-route-certificates)
+
 6. [nginx-proxy-custom](/nginx-proxy-custom/README.md)
 
     Proxy used to log content and headers sent by BPMRESTRequest (BAW service) or other OpenAPI implementations 
