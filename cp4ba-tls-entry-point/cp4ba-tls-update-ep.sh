@@ -75,12 +75,12 @@ verifyMandatoryParams() {
 
 #-------------------------------
 verifySourceSecret() {
+  _SOURCE_SECRET=0
   if [[ ! -z "${_SOURCE_SECRET_NAME}" ]] || [[ ! -z "${_SOURCE_SECRET_NAMESPACE}" ]]; then
     if [[ ! -z "${_SOURCE_SECRET_NAME}" ]] && [[ ! -z "${_SOURCE_SECRET_NAMESPACE}" ]]; then
       _SOURCE_SECRET=1
     fi
   fi
-
   [[ $_ECHO -gt 0 ]] && echo "-> verifySourceSecret ${_SOURCE_SECRET}"
 }
 
@@ -189,37 +189,53 @@ waitForProgress() {
   done
 }
 
+configureZenCertificate () {
+
+  verifyMandatoryParams
+  if [[ $_OK_PARAMS -eq 0 ]]; then
+    usage
+    exit 1
+  fi
+
+  if [[ "${_WAIT_PROGRESS}" = "true" ]]; then
+    echo -e "${_CLR_GREEN}Wait for ZenService update completion${_CLR_NC}" 
+    waitForProgress
+  else
+    echo -e "${_CLR_GREEN}Apply certificate to ZenService${_CLR_NC}" 
+    verifySourceSecret
+
+    if [[ $_SOURCE_SECRET -eq 1 ]]; then
+      existSourceSecret
+
+      if [[ $_EXIST_SOURCE_SECRET -eq 0 ]]; then
+        _SOURCE_SECRET_NAMESPACE="openshift-ingress"      
+        OCP_CLUSTER_NAME=$(oc cluster-info | sed 's/.*https:\/\/api.itz-//g' | sed 's/\..*//g' | head -n1)
+        _SOURCE_SECRET_NAME="itz-${OCP_CLUSTER_NAME}-serving-cert"
+        CERT_PRESENT=$(oc get secret --no-headers -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} | wc -l)
+        if [[ CERT_PRESENT -gt 0 ]]; then
+          _EXIST_SOURCE_SECRET=1
+          echo -e "${_CLR_YELLOW}Certificate for ZenService '${_CLR_GREEN}${_SOURCE_SECRET_NAME}${_CLR_YELLOW}' found in namespace '${_CLR_GREEN}${_SOURCE_SECRET_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}" 
+        fi
+      fi
+
+      if [[ $_EXIST_SOURCE_SECRET -eq 1 ]]; then
+        cloneSecretToTarget
+      else
+        echo -e "${_CLR_RED}ERROR, source secret '${_CLR_YELLOW}${_SOURCE_SECRET_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_SOURCE_SECRET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
+        exit 1
+      fi
+    fi
+
+    existTargetSecret
+    if [[ $_EXIST_TARGET_SECRET -eq 1  ]]; then
+      applySecretToZenService
+      if [[ "${_NO_WAIT_PROGRESS}" = "false" ]]; then
+        waitForProgress
+      fi
+    fi
+  fi
+}
+
 #=================================
-
-verifyMandatoryParams
-if [[ $_OK_PARAMS -eq 0 ]]; then
-  usage
-  exit 1
-fi
-
-if [[ "${_WAIT_PROGRESS}" = "true" ]]; then
-  echo -e "${_CLR_GREEN}Wait for ZenService update completion${_CLR_NC}" 
-  waitForProgress
-else
-  echo -e "${_CLR_GREEN}Apply certificate to ZenService${_CLR_NC}" 
-  verifySourceSecret
-  if [[ $_SOURCE_SECRET -eq 1 ]]; then
-    existSourceSecret
-    if [[ $_EXIST_SOURCE_SECRET -eq 1 ]]; then
-      cloneSecretToTarget
-    else
-      echo -e "${_CLR_RED}ERROR, source secret '${_CLR_YELLOW}${_SOURCE_SECRET_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_SOURCE_SECRET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
-      exit 1
-    fi
-  fi
-
-  existTargetSecret
-  if [[ $_EXIST_TARGET_SECRET -eq 1  ]]; then
-    applySecretToZenService
-    if [[ "${_NO_WAIT_PROGRESS}" = "false" ]]; then
-      waitForProgress
-    fi
-  fi
-fi
-
+configureZenCertificate
 exit 0
