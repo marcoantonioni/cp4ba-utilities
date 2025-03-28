@@ -37,10 +37,14 @@ The secret name is in the form 'itz-<OCP_CLUSTER_NAME>-serving-cert'
 Get secret name
 ```
 CERT_TNS_ORIGIN=openshift-ingress
-OCP_CLUSTER_NAME=$(oc cluster-info | sed 's/.*https:\/\/api.itz-//g' | sed 's/\..*//g' | head -n1)
+OCP_CLUSTER_NAME=$(oc cluster-info | sed 's/.*https:\/\/api.//g' | sed 's/\..*//g' | head -n1)
 echo "Name: "${OCP_CLUSTER_NAME}
 LE_SECRET_NAME="itz-${OCP_CLUSTER_NAME}-serving-cert"
-oc get secret --no-headers -n ${CERT_TNS_ORIGIN} ${LE_SECRET_NAME}
+echo "Secret certificate: "${LE_SECRET_NAME}
+
+ITZ_SECRET=$(oc get secret --no-headers -n ${CERT_TNS_ORIGIN} | grep ${LE_SECRET_NAME} | wc -l)
+[[ ${ITZ_SECRET} -eq 0 ]]; LE_SECRET_NAME=letsencrypt-certs
+echo "Using secret certificate: "${LE_SECRET_NAME}
 ```
 
 Update ZenService instance 'iaf-zen-cpdservice'
