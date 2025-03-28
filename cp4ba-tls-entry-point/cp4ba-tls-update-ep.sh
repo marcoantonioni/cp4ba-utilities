@@ -169,7 +169,7 @@ waitForProgress() {
   _ENTRY=1
   while [ true ]
   do
-    _PROGRESS=$(oc get zenservice -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} -o jsonpath='{.status.Progress}')
+    _PROGRESS=$(oc get zenservice -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} -o jsonpath='{.status.progress}')
     if [[ ${_PROGRESS} = "100%" ]] && [[ $_ENTRY -eq 1 ]]; then
       _PROGRESS="0%"
       echo -e -n "${_CLR_GREEN}Wait operator${_CLR_NC}\033[0K\r"
