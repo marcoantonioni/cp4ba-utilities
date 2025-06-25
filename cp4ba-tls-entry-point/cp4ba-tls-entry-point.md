@@ -49,6 +49,9 @@ echo "Using secret certificate: "${LE_SECRET_NAME}
 
 Update ZenService instance 'iaf-zen-cpdservice'
 ```
+CONFIG_FILE=../configs25/env1-starter-all-but-adp.properties 
+LE_SECRET_NAME=letsencrypt-certs
+CERT_TNS_ORIGIN=openshift-ingress
 CERT_TNS_DEST=cp4ba-demo
 ./cp4ba-tls-update-ep.sh -n ${CERT_TNS_DEST} -z iaf-zen-cpdservice -s my-letsencrypt -f ${LE_SECRET_NAME} -k ${CERT_TNS_ORIGIN}
 ```
