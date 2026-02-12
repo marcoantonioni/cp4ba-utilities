@@ -70,7 +70,7 @@ deleteObject() {
   TYPE=$2
   echo "#-----------------------------------------"
   echo -e "${_CLR_GREEN}Deleting objects of type '${_CLR_YELLOW}${TYPE}${_CLR_GREEN}'${_CLR_NC} ..."
-  oc get ${TYPE} -n ${TNS} --no-headers 2> /dev/null | awk '{print $1}' | xargs oc delete ${TYPE} -n ${TNS} --wait=false 2> /dev/null
+  oc get ${TYPE} -n ${TNS} --no-headers 2> /dev/null | awk '{print $1}' | xargs oc delete ${TYPE} -n ${TNS} --wait=false --grace-period=0 --force 2> /dev/null
   removeOwnersAndFinalizers ${TNS} ${TYPE}
 }
 
