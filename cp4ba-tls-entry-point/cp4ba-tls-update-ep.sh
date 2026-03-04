@@ -1,8 +1,11 @@
 #!/bin/bash
 
+#set -euo pipefail
+
+
 _CLR_RED="\033[0;31m"   #'0;31' is Red's ANSI color code
 _CLR_GREEN="\033[0;32m"   #'0;32' is Green's ANSI color code
-_CLR_YELLOW="\033[1;32m"   #'1;32' is Yellow's ANSI color code
+_CLR_YELLOW="\033[1;33m"   #'1;32' is Yellow's ANSI color code
 _CLR_BLUE="\033[0;34m"   #'0;34' is Blue's ANSI color code
 _CLR_NC="\033[0m"
 
@@ -167,7 +170,7 @@ applySecretToZenService() {
 
 waitForProgress() {
   _ENTRY=1
-  while [ true ]
+  while true 
   do
     _PROGRESS=$(oc get zenservice -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} -o jsonpath='{.status.progress}')
     if [[ ${_PROGRESS} = "100%" ]] && [[ $_ENTRY -eq 1 ]]; then

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#set -euo pipefail
+
+
 _CLR_OFF="\033[0m"     # Color off
 _CLR_BLNK="\033[5m"    # Blink
 _CLR_BLU="\033[0;34m"  # Blue
@@ -93,7 +96,7 @@ installApplication () {
   sleep 2
   echo "Get installation status at url: ${INST_URL}"
   if [[ ! -z "${INST_URL}" ]]; then
-    while [ true ]
+    while true 
     do
       INST_STATE=$(curl -sk -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -H 'accept: application/json' -H 'BPMCSRFToken: '${_CSRF_TOKEN} -X GET ${INST_URL} | jq .state | sed 's/"//g')
       if [[ ${INST_STATE} == "running" ]]; then

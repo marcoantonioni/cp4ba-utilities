@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#set -euo pipefail
+
+
 _CLR_OFF="\033[0m"     # Color off
 _CLR_BLNK="\033[5m"    # Blink
 _CLR_BLU="\033[0;34m"  # Blue
@@ -95,7 +98,7 @@ undeployApplication () {
   echo "Request result: "${REMOVE_DESCR}
   sleep 2
   echo "Get deletion status at url: "${REMOVE_URL}
-  while [ true ]
+  while true 
   do
     echo -n "."
     REMOVE_RESPONSE=$(curl -sk -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -H 'accept: application/json' -H 'BPMCSRFToken: '${_CSRF_TOKEN} -X GET ${REMOVE_URL})

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#set -euo pipefail
+
+
 _CLR_OFF="\033[0m"     # Color off
 _CLR_BLNK="\033[5m"    # Blink
 _CLR_BLU="\033[0;34m"  # Blue
