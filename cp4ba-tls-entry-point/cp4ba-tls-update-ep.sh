@@ -16,6 +16,35 @@ _TARGET_NEW_SECRET_NAME=""
 _SOURCE_SECRET_NAME=""
 _SOURCE_SECRET_NAMESPACE=""
 
+#--------------------------------------------------------
+_INST_TMP_FOLDER="/tmp"
+setTemporaryFolder () {
+  _OK=0
+  _ERR_MSG_FOLDER="is a folder"
+  _ERR_MSG_PERMISSIONS=""
+  if [[ ! -z "${CP4BA_INST_TMP_FOLDER}" ]]; then
+    if [[ -d "${CP4BA_INST_TMP_FOLDER}" ]]; then
+      if [[ -r "${CP4BA_INST_TMP_FOLDER}" ]] && [[ -w "${CP4BA_INST_TMP_FOLDER}" ]]; then 
+        _OK=1
+      else
+        _ERR_MSG_PERMISSIONS=", you have not rights to read and/or write"
+        _OK=-1
+      fi
+    else
+      _ERR_MSG_FOLDER="is NOT a folder"
+    fi
+
+    if [[ $_OK -lt 1 ]]; then
+      echo -e "${_CLR_RED}[✗] ERROR '${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' is not a valid temporary folder, check if it is a folder or if you have write permissions !${_CLR_NC}"
+      echo -e "${_CLR_RED}'${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' ${_ERR_MSG_FOLDER}${_ERR_MSG_PERMISSIONS}${_CLR_NC}"
+      exit 1
+    fi
+    export _INST_TMP_FOLDER="${CP4BA_INST_TMP_FOLDER}"
+  fi
+  echo -e "${_CLR_GREEN}Running with temporary folder '${_CLR_YELLOW}${_INST_TMP_FOLDER}${_CLR_GREEN}'${_CLR_NC}"
+
+}
+
 usage () {
   echo ""
   echo -e "${_CLR_GREEN}usage: $_me
@@ -117,12 +146,12 @@ cloneSecretToTarget() {
 
   _RND_="$USER-$RANDOM"
 
-  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.crt}' | base64 -d | awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {if(length($0) > 0) print > "/tmp/cp4ba-ep-'${_RND_}'-cert" n ".pem"}'
+  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.crt}' | base64 -d | awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {if(length($0) > 0) print > "${_INST_TMP_FOLDER}/cp4ba-ep-'${_RND_}'-cert" n ".pem"}'
 
-  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/cp4ba-ep-${_RND_}-cert-tls.key
+  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.key}' | base64 -d > ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.key
 
-  mv /tmp/cp4ba-ep-${_RND_}-cert1.pem /tmp/cp4ba-ep-${_RND_}-cert-ca.crt
-  mv /tmp/cp4ba-ep-${_RND_}-cert.pem /tmp/cp4ba-ep-${_RND_}-cert-tls.crt
+  mv ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert1.pem ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-ca.crt
+  mv ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert.pem ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt
 
   existTargetSecret
   if [[ $_EXIST_TARGET_SECRET -eq 1 ]]; then
@@ -130,21 +159,21 @@ cloneSecretToTarget() {
   fi
 
   oc -n ${_TARGET_NAMESPACE} create secret generic ${_TARGET_NEW_SECRET_NAME} \
-    --from-file=tls.crt=/tmp/cp4ba-ep-${_RND_}-cert-tls.crt \
-    --from-file=tls.key=/tmp/cp4ba-ep-${_RND_}-cert-tls.key \
-    --from-file=ca.crt=/tmp/cp4ba-ep-${_RND_}-cert-ca.crt \
+    --from-file=tls.crt=${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt \
+    --from-file=tls.key=${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.key \
+    --from-file=ca.crt=${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-ca.crt \
     --dry-run=client -o yaml | oc apply -f - 2>/dev/null 1>/dev/null
 
-  _ISSUER=$(openssl x509 -text -noout -in /tmp/cp4ba-ep-${_RND_}-cert-tls.crt | grep "Issuer:" | sed 's/^[ \t]*Issuer: //g')
-  _SUBJECT=$(openssl x509 -text -noout -in /tmp/cp4ba-ep-${_RND_}-cert-tls.crt | grep "Subject:" | sed 's/^[ \t]*Subject: //g')
-  _SAN=$(openssl x509 -text -noout -in /tmp/cp4ba-ep-${_RND_}-cert-tls.crt | grep "DNS:" | sed 's/^[ \t]*//g')
+  _ISSUER=$(openssl x509 -text -noout -in ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt | grep "Issuer:" | sed 's/^[ \t]*Issuer: //g')
+  _SUBJECT=$(openssl x509 -text -noout -in ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt | grep "Subject:" | sed 's/^[ \t]*Subject: //g')
+  _SAN=$(openssl x509 -text -noout -in ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt | grep "DNS:" | sed 's/^[ \t]*//g')
   echo -e "${_CLR_GREEN}Certificate Issuer: '${_CLR_YELLOW}${_ISSUER}${_CLR_GREEN}'${_CLR_NC}"
   echo -e "${_CLR_GREEN}Certificate Subject: '${_CLR_YELLOW}${_SUBJECT}${_CLR_GREEN}'${_CLR_NC}"
   echo -e "${_CLR_GREEN}Certificate SAN: '${_CLR_YELLOW}${_SAN}${_CLR_GREEN}'${_CLR_NC}"
 
-  rm /tmp/cp4ba-ep-${_RND_}-cert-ca.crt 2>/dev/null
-  rm /tmp/cp4ba-ep-${_RND_}-cert-tls.crt 2>/dev/null
-  rm /tmp/cp4ba-ep-${_RND_}-cert-tls.key 2>/dev/null
+  rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-ca.crt 2>/dev/null
+  rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt 2>/dev/null
+  rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.key 2>/dev/null
 
 }
 
@@ -240,5 +269,6 @@ configureZenCertificate () {
 }
 
 #=================================
+setTemporaryFolder
 configureZenCertificate
 exit 0

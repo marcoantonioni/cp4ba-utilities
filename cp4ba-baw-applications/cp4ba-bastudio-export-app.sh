@@ -27,6 +27,35 @@ _BAS_ADMINUSER=""
 _BAS_ADMINPASSWORD=""
 _FILE_OUT=""
 
+#--------------------------------------------------------
+_INST_TMP_FOLDER="/tmp"
+setTemporaryFolder () {
+  _OK=0
+  _ERR_MSG_FOLDER="is a folder"
+  _ERR_MSG_PERMISSIONS=""
+  if [[ ! -z "${CP4BA_INST_TMP_FOLDER}" ]]; then
+    if [[ -d "${CP4BA_INST_TMP_FOLDER}" ]]; then
+      if [[ -r "${CP4BA_INST_TMP_FOLDER}" ]] && [[ -w "${CP4BA_INST_TMP_FOLDER}" ]]; then 
+        _OK=1
+      else
+        _ERR_MSG_PERMISSIONS=", you have not rights to read and/or write"
+        _OK=-1
+      fi
+    else
+      _ERR_MSG_FOLDER="is NOT a folder"
+    fi
+
+    if [[ $_OK -lt 1 ]]; then
+      echo -e "${_CLR_RED}[✗] ERROR '${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' is not a valid temporary folder, check if it is a folder or if you have write permissions !${_CLR_NC}"
+      echo -e "${_CLR_RED}'${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' ${_ERR_MSG_FOLDER}${_ERR_MSG_PERMISSIONS}${_CLR_NC}"
+      exit 1
+    fi
+    export _INST_TMP_FOLDER="${CP4BA_INST_TMP_FOLDER}"
+  fi
+  echo -e "${_CLR_GREEN}Running with temporary folder '${_CLR_YELLOW}${_INST_TMP_FOLDER}${_CLR_GREEN}'${_CLR_NC}"
+
+}
+
 usage () {
   echo ""
   echo -e "${_CLR_GREEN}usage: $_me
@@ -67,7 +96,7 @@ exportApplication () {
   echo ""
   _BASIC_AUTH=$(echo "${_BAS_ADMINUSER}:${_BAS_ADMINPASSWORD}" | base64) 
 
-  _TMP_FILE="/tmp/cp4ba-exp-file-$USER-$RANDOM" 
+  _TMP_FILE="${_INST_TMP_FOLDER}/cp4ba-exp-file-$USER-$RANDOM" 
   
   curl -sk -H 'authorization: Basic '${_BASIC_AUTH} \
     -o ${_TMP_FILE} \
@@ -98,5 +127,7 @@ if [[ -z "${_BAS_EXTERNAL_BASE_URL}" ]] || [[ -z "${_BAS_APP_ACRONYM}" ]] || [[ 
   usage
   exit 1
 fi
+
+setTemporaryFolder
 
 exportApplication
