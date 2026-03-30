@@ -146,8 +146,8 @@ cloneSecretToTarget() {
 
   _RND_="$USER-$RANDOM"
 
-  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.crt}' | base64 -d | awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {if(length($0) > 0) print > "${_INST_TMP_FOLDER}/cp4ba-ep-'${_RND_}'-cert" n ".pem"}'
-
+  oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.crt}' | base64 -d | awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {if(length($0) > 0) print > "'${_INST_TMP_FOLDER}'/cp4ba-ep-'${_RND_}'-cert" n ".pem"}'
+  
   oc get secret -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} -o jsonpath='{.data.tls\.key}' | base64 -d > ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.key
 
   mv ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert1.pem ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-ca.crt
