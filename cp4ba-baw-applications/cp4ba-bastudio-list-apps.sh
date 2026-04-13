@@ -90,7 +90,7 @@ listApplications () {
             _APP_DES=$(echo ${row} | base64 --decode | jq -r ".version_name")
             _INSTALLABLE=$(echo ${row} | base64 --decode | jq -r ".installable")
 
-            echo "${_APP_CTR} - ${_APP_VER} - ${_INSTALLABLE} - ${_APP_NAME} - ${_APP_DES}" | sed 's/"//g'
+            echo "${_APP_CTR} - ${_APP_NAME} - ${_INSTALLABLE} - ${_APP_VER} - ${_APP_DES}" | sed 's/"//g'
           }
         echo $(_jq '.version')
       done

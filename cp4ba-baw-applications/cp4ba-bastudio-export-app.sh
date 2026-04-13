@@ -97,18 +97,19 @@ exportApplication () {
   _BASIC_AUTH=$(echo "${_BAS_ADMINUSER}:${_BAS_ADMINPASSWORD}" | base64) 
 
   _TMP_FILE="${_INST_TMP_FOLDER}/cp4ba-exp-file-$USER-$RANDOM" 
-  
-  curl -sk -H 'authorization: Basic '${_BASIC_AUTH} \
+
+  curl -sk -C - -H 'Authorization: Basic '${_BASIC_AUTH} \
     -o ${_TMP_FILE} \
-    -H 'accept: application/octet-stream' -H 'BPMCSRFToken: '${_CSRF_TOKEN} \
-    -X GET "${_BAS_EXTERNAL_BASE_URL}/ops/std/bpm/containers/"${_BAS_APP_NAME}"/versions/"${_BAS_APP_ACRONYM}"/install_package"
+    -H 'accept: application/octet-stream' \
+    -H 'BPMCSRFToken: '${_CSRF_TOKEN} \
+    -X GET "${_BAS_EXTERNAL_BASE_URL}/ops/std/bpm/containers/"${_BAS_APP_NAME}"/versions/"${_BAS_APP_ACRONYM}"/install_package?use_enhanced_filenames=false"
+
   _KO=1
   if [[ -f "${_TMP_FILE}" ]]; then
-
     _IS_ERR=$(xxd -l 100 ${_TMP_FILE} | grep "error_message" | wc -l)
     if [[ $_IS_ERR -eq 0 ]]; then
       rm ${_FILE_OUT} 2>/dev/null
-      mv ${_TMP_FILE} ${_FILE_OUT} 2>/dev/null
+      mv ${_TMP_FILE} ${_FILE_OUT} # 2>/dev/null
       if [[ $? -eq 0 ]]; then
         echo "Application successfully exported in file ${_FILE_OUT}"
         _KO=0
@@ -118,7 +119,6 @@ exportApplication () {
   if [[ $_KO -eq 1 ]]; then
     echo "ERROR exporting application."
   fi
-  rm ${_TMP_FILE} 2>/dev/null
 }
 
 if [[ -z "${_BAS_EXTERNAL_BASE_URL}" ]] || [[ -z "${_BAS_APP_ACRONYM}" ]] || [[ -z "${_BAS_APP_NAME}" ]] || 
