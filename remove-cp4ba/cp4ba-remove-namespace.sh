@@ -12,11 +12,27 @@ _me=$(basename "$0")
 _CP4BA_NAMESPACE=""
 
 #--------------------------------------------------------
-_CLR_RED='\033[0;31m'   #'0;31' is Red's ANSI color code
-_CLR_GREEN='\033[0;32m'   #'0;32' is Green's ANSI color code
-_CLR_YELLOW='\033[1;32m'   #'1;32' is Yellow's ANSI color code
-_CLR_BLUE='\033[0;34m'   #'0;34' is Blue's ANSI color code
-_CLR_NC='\033[0m'
+_CLR_RED="\033[0;31m"   #'0;31' is Red's ANSI color code
+_CLR_GREEN="\033[0;32m"   #'0;32' is Green's ANSI color code
+_CLR_YELLOW="\033[1;33m"   #'1;32' is Yellow's ANSI color code
+_CLR_BLUE="\033[0;34m"   #'0;34' is Blue's ANSI color code
+_CLR_NC="\033[0m"
+
+_SCRIPT_PATH="${BASH_SOURCE}"
+while [ -L "${_SCRIPT_PATH}" ]; do
+  _SCRIPT_DIR="$(cd -P "$(dirname "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+  _SCRIPT_PATH="$(readlink "${_SCRIPT_PATH}")"
+  [[ ${_SCRIPT_PATH} != /* ]] && _SCRIPT_PATH="${_SCRIPT_DIR}/${_SCRIPT_PATH}"
+done
+_SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
+_SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+
+source $_SCRIPT_DIR/../logger/logs.sh
+export LOGGING_ENABLED=true
+export LOG_LEVEL="DEBUG"
+export LOG_TO_CONSOLE=true
+#export LOG_TO_FILE=false
+
 
 #--------------------------------------------------------
 # read command line params
@@ -28,8 +44,8 @@ do
 done
 
 if [[ -z "${_CP4BA_NAMESPACE}" ]]; then
-  echo "usage: $_me -n namespace-to-be-removed"
-  exit
+  log_msg "usage: $_me -n namespace-to-be-removed"
+  exit 1
 fi
 
 #-------------------------------
@@ -71,8 +87,7 @@ removeOwnersAndFinalizers() {
 deleteObject() {
   TNS=$1
   TYPE=$2
-  echo "#-----------------------------------------"
-  echo -e "${_CLR_GREEN}Deleting objects of type '${_CLR_YELLOW}${TYPE}${_CLR_GREEN}'${_CLR_NC} ..."
+  log_info "${_CLR_GREEN}Deleting objects of type '${_CLR_YELLOW}${TYPE}${_CLR_GREEN}'${_CLR_NC} ..."
   oc get ${TYPE} -n ${TNS} --no-headers 2> /dev/null | awk '{print $1}' | xargs oc delete ${TYPE} -n ${TNS} --wait=false --grace-period=0 --force 2> /dev/null
   removeOwnersAndFinalizers ${TNS} ${TYPE}
 }
@@ -95,8 +110,8 @@ deleteCp4baNamespace () {
     deleteObject ${TNS} ${_type}
   done
 
-  echo "#-----------------------------------------"
-  echo -e "${_CLR_GREEN}Deleting namespace '${_CLR_YELLOW}${TNS}${_CLR_GREEN}'${_CLR_NC} ..."
+  # echo "#-----------------------------------------"
+  log_msg "${_CLR_GREEN}Deleting namespace '${_CLR_YELLOW}${TNS}${_CLR_GREEN}'${_CLR_NC} ..."
   oc delete ns ${TNS} --wait=false 2> /dev/null
   sleep 5
   
@@ -109,7 +124,7 @@ deleteCp4baNamespace () {
       namespaceExist ${TNS}
       if [ $? -eq 1 ]; then
         oc patch ns ${TNS} --type='merge' -p '{"spec": {"finalizers":null}}' 2> /dev/null 1> /dev/null
-        echo -e -n "${_CLR_GREEN}patching finalizers [${_CLR_YELLOW}"${_patchLoop}"${_CLR_GREEN}]${_CLR_NC}  \033[0K\r"
+        log_msg -n "${_CLR_GREEN}patching finalizers [${_CLR_YELLOW}"${_patchLoop}"${_CLR_GREEN}]${_CLR_NC}  \033[0K\r"
         sleep 1
       else
         echo ""
@@ -125,12 +140,11 @@ deleteCp4baNamespace () {
 
 #===========================================================
 
-echo "#========================================="
-echo -e "${_CLR_YELLOW}Removing namespace: '${_CLR_GREEN}${_CP4BA_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}"
+log_msg "${_CLR_GREEN}Removing namespace: '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}'${_CLR_NC}"
 namespaceExist ${_CP4BA_NAMESPACE}
 if [ $? -eq 1 ]; then
   deleteCp4baNamespace ${_CP4BA_NAMESPACE}
-  echo -e "${_CLR_GREEN}Namespace '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}' removed.${_CLR_NC}"
+  log_msg "${_CLR_GREEN}Namespace '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}' removed.${_CLR_NC}"
 else
-  echo -e "${_CLR_YELLOW}Namespace '${_CLR_GREEN}${_CP4BA_NAMESPACE}${_CLR_YELLOW}' not found.${_CLR_NC}"
+  log_msg "${_CLR_GREEN}Namespace '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}' not found.${_CLR_NC}"
 fi
