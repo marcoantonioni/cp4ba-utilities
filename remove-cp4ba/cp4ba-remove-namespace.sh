@@ -27,7 +27,7 @@ done
 _SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
 _SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
 
-source $_SCRIPT_DIR/../logger/logs.sh
+source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
 export LOGGING_ENABLED=true
 export LOG_LEVEL="DEBUG"
 export LOG_TO_CONSOLE=true
