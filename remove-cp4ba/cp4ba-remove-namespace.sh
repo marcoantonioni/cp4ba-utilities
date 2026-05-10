@@ -28,10 +28,9 @@ _SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
 _SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
 
 source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
-export LOGGING_ENABLED=true
-export LOG_LEVEL="DEBUG"
-export LOG_TO_CONSOLE=true
-#export LOG_TO_FILE=false
+export CP4BA_LOGGING_ENABLED=true
+export CP4BA_LOG_LEVEL="INFO"
+export CP4BA_LOG_TO_CONSOLE=true
 
 
 #--------------------------------------------------------
@@ -140,11 +139,13 @@ deleteCp4baNamespace () {
 
 #===========================================================
 
+log_msg "${_CLR_GREEN}===========================================================${_CLR_NC}"
 log_msg "${_CLR_GREEN}Removing namespace: '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}'${_CLR_NC}"
+log_msg ""
 namespaceExist ${_CP4BA_NAMESPACE}
 if [ $? -eq 1 ]; then
   deleteCp4baNamespace ${_CP4BA_NAMESPACE}
-  log_msg "${_CLR_GREEN}Namespace '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}' removed.${_CLR_NC}"
+  log_msg "${_CLR_GREEN}Namespace '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}' has been removed.${_CLR_NC}"
 else
   log_msg "${_CLR_GREEN}Namespace '${_CLR_YELLOW}${_CP4BA_NAMESPACE}${_CLR_GREEN}' not found.${_CLR_NC}"
 fi
