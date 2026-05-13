@@ -27,10 +27,19 @@ done
 _SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
 _SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
 
+if [[ ! -f "$_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh" ]]; then
+  echo "Error, log package not found !"
+  echo "Clone it alongside with other cp4ba-..."
+  echo "use the command: git clone https://github.com/marcoantonioni/cp4ba-logger"
+  exit 1
+fi
 source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
 export CP4BA_LOGGING_ENABLED=true
 export CP4BA_LOG_LEVEL="INFO"
 export CP4BA_LOG_TO_CONSOLE=true
+export CP4BA_LOG_TO_FILE=true
+export CP4BA_LOG_FILE="/tmp/cp4ba-logs/application-"$(date "+%Y-%m-%d-%H_%M_%S")".log"
+export CP4BA_LOG_MAX_SIZE=$((10 * 1024 * 1024))
 
 
 #--------------------------------------------------------
