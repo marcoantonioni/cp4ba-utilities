@@ -37,7 +37,7 @@ source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
 export CP4BA_LOGGING_ENABLED=true
 export CP4BA_LOG_LEVEL="INFO"
 export CP4BA_LOG_TO_CONSOLE=true
-export CP4BA_LOG_TO_FILE=true
+export CP4BA_LOG_TO_FILE=false
 export CP4BA_LOG_FILE="/tmp/cp4ba-logs/application-"$(date "+%Y-%m-%d-%H_%M_%S")".log"
 export CP4BA_LOG_MAX_SIZE=$((10 * 1024 * 1024))
 
