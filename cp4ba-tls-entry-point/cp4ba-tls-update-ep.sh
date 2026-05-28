@@ -268,7 +268,7 @@ configureZenCertificate () {
   fi
 }
 
-log_msg "=============================================================="
+echo -e "=============================================================="
 setTemporaryFolder
 configureZenCertificate
 exit 0
