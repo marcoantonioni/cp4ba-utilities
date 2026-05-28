@@ -268,7 +268,7 @@ configureZenCertificate () {
   fi
 }
 
-#=================================
+log_msg "=============================================================="
 setTemporaryFolder
 configureZenCertificate
 exit 0
