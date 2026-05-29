@@ -286,7 +286,7 @@ configureZenCertificate () {
         CERT_PRESENT=$(oc get secret --no-headers -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} | wc -l)
         if [[ CERT_PRESENT -gt 0 ]]; then
           _EXIST_SOURCE_SECRET=1
-          log_info "${_CLR_GREEN}Certificate for ZenService '${_CLR_GREEN}${_SOURCE_SECRET_NAME}${_CLR_YELLOW}' found in namespace '${_CLR_GREEN}${_SOURCE_SECRET_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}" 
+          log_info "${_CLR_GREEN}Certificate for ZenService '${_CLR_YELLOW}${_SOURCE_SECRET_NAME}${_CLR_GREEN}' found in namespace '${_CLR_YELLOW}${_SOURCE_SECRET_NAMESPACE}${_CLR_GREEN}'${_CLR_NC}" 
         fi
       fi
 
