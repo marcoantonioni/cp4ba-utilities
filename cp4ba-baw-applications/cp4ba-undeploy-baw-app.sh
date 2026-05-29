@@ -30,6 +30,45 @@ _BAW_APP=""
 _BAW_APP_BRANCH=""
 _BAW_APP_FORCE=false
 
+#----------------------------------------------------
+_SCRIPT_PATH="${BASH_SOURCE}"
+while [ -L "${_SCRIPT_PATH}" ]; do
+  _SCRIPT_DIR="$(cd -P "$(dirname "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+  _SCRIPT_PATH="$(readlink "${_SCRIPT_PATH}")"
+  [[ ${_SCRIPT_PATH} != /* ]] && _SCRIPT_PATH="${_SCRIPT_DIR}/${_SCRIPT_PATH}"
+done
+_SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
+_SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+
+#----------------------------------------------------
+if [[ ! -f "$_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh" ]]; then
+  echo "Error, log package not found !"
+  echo "Clone it alongside with other cp4ba-..."
+  echo "use the command: git clone https://github.com/marcoantonioni/cp4ba-logger"
+  exit 1
+fi
+source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
+if [[ -z "${CP4BA_LOGGING_ENABLED}" ]]; then 
+  export CP4BA_LOGGING_ENABLED=true
+fi
+if [[ -z "${CP4BA_LOG_LEVEL}" ]]; then 
+  export CP4BA_LOG_LEVEL="INFO"
+fi
+if [[ -z "${CP4BA_LOG_TO_CONSOLE}" ]]; then 
+  export CP4BA_LOG_TO_CONSOLE=true
+fi
+if [[ -z "${CP4BA_LOG_TO_FILE}" ]]; then 
+  export CP4BA_LOG_TO_FILE=false
+fi
+if [[ -z "${CP4BA_LOG_FILE}" ]]; then 
+  export CP4BA_LOG_FILE=""
+fi
+if [[ -z "${CP4BA_LOG_MAX_SIZE}" ]]; then 
+  export CP4BA_LOG_MAX_SIZE=$((10 * 1024 * 1024))
+fi
+if [[ -z "${CP4BA_LOG_BACKUP_COUNT}" ]]; then 
+  export CP4BA_LOG_BACKUP_COUNT=5
+fi
 
 usage () {
   echo ""
@@ -63,20 +102,20 @@ done
 
 undeployApplication () {
 
-  echo "Undeploy application: ${_BAW_APP_BRANCH} - ${_BAW_APP}"
+  log_msg "Undeploy application: ${_BAW_APP_BRANCH} - ${_BAW_APP}"
   _BAW_EXTERNAL_BASE_URL=$(oc get ICP4ACluster -n ${_BAW_DEPL_NAMESPACE} ${_CR_NAME} -o jsonpath='{.status.endpoints}' | jq '.[] | select(.scope == "External") | select(.name | contains("base URL for '${_BAW_DEPL_NAME}'"))' | jq .uri | sed 's/"//g')
 
   LOGIN_URI="${_BAW_EXTERNAL_BASE_URL}ops/system/login"
 
-  echo "Wait for CSRF token, login to ${LOGIN_URI}"
+  log_msg "Wait for CSRF token, login to ${LOGIN_URI}"
   until _CSRF_TOKEN=$(curl -ks -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -X POST -H 'accept: application/json' -H 'Content-Type: application/json' ${LOGIN_URI} -d '{"refresh_groups": true, "requested_lifetime": 7200}' | jq .csrf_token 2>/dev/null | sed 's/"//g') && [[ -n "$_CSRF_TOKEN" ]]
   do
-    echo -n "."
+    #echo -n "."
     sleep 1
   done
 
-  echo ""
-  echo "Undeploy application acronym ["${_BAW_APP}"] branch ["${_BAW_APP_BRANCH}"]... "
+  log_msg ""
+  log_msg "Undeploy application acronym ["${_BAW_APP}"] branch ["${_BAW_APP_BRANCH}"]... "
 
   _CMD="ops/std/bpm/containers/${_BAW_APP}/versions?versions=${_BAW_APP_BRANCH}"
   if [[ "${_BAW_APP_FORCE}" = "true"  ]]; then
@@ -85,22 +124,22 @@ undeployApplication () {
   _RESPONSE=$(curl -sk -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -H 'accept: application/json' -H 'BPMCSRFToken: '${_CSRF_TOKEN} -X DELETE "${_BAW_EXTERNAL_BASE_URL}${_CMD}")  
 
   if [[ "${_RESPONSE}" == *"error_"* ]]; then
-    echo ""
-    echo "ERROR configuring '${_BAW_APP}/${_BAW_APP_BRANCH}' details:"
+    log_msg ""
+    log_error "ERROR configuring '${_BAW_APP}/${_BAW_APP_BRANCH}' details:"
     echo "${_RESPONSE}" | jq .
-    echo
+    log_msg
     exit 1
   fi
 
   REMOVE_DESCR=$(echo ${_RESPONSE} | jq .description | sed 's/"//g')
   REMOVE_URL=$(echo ${_RESPONSE} | jq .url | sed 's/"//g')
 
-  echo "Request result: "${REMOVE_DESCR}
+  log_msg "Request result: "${REMOVE_DESCR}
   sleep 2
-  echo "Get deletion status at url: "${REMOVE_URL}
+  log_msg "Get deletion status at url: ${REMOVE_URL}"
   while true 
   do
-    echo -n "."
+    #echo -n "."
     REMOVE_RESPONSE=$(curl -sk -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -H 'accept: application/json' -H 'BPMCSRFToken: '${_CSRF_TOKEN} -X GET ${REMOVE_URL})
     REMOVE_STATE=$(echo ${REMOVE_RESPONSE} | jq .state | sed 's/"//g')
     if [[ ${REMOVE_STATE} = "running" ]]; then
@@ -109,15 +148,15 @@ undeployApplication () {
       if [[ ${REMOVE_STATE} = "failure" ]]; then
         echo ${REMOVE_RESPONSE} | jq .
       fi
-      echo ""
-      echo "Final deletion state: "${REMOVE_STATE}
+      log_msg ""
+      log_msg "Final deletion state: ${REMOVE_STATE}"
       break
     fi
   done
 }
 
 if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]] || [[ -z "${_BAW_APP}" ]] || [[ -z "${_BAW_APP_BRANCH}" ]]; then
-  echo "ERROR: Empty values for required parameter"
+  log_error "ERROR: Empty values for required parameter"
   usage
   exit 1
 fi

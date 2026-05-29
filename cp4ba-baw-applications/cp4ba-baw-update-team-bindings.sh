@@ -17,6 +17,46 @@ _BAW_CSRF_TOKEN=""
 _REMOVE=false
 _BAW_EXTERNAL_BASE_URL=""
 
+#----------------------------------------------------
+_SCRIPT_PATH="${BASH_SOURCE}"
+while [ -L "${_SCRIPT_PATH}" ]; do
+  _SCRIPT_DIR="$(cd -P "$(dirname "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+  _SCRIPT_PATH="$(readlink "${_SCRIPT_PATH}")"
+  [[ ${_SCRIPT_PATH} != /* ]] && _SCRIPT_PATH="${_SCRIPT_DIR}/${_SCRIPT_PATH}"
+done
+_SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
+_SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+
+#----------------------------------------------------
+if [[ ! -f "$_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh" ]]; then
+  echo "Error, log package not found !"
+  echo "Clone it alongside with other cp4ba-..."
+  echo "use the command: git clone https://github.com/marcoantonioni/cp4ba-logger"
+  exit 1
+fi
+source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
+if [[ -z "${CP4BA_LOGGING_ENABLED}" ]]; then 
+  export CP4BA_LOGGING_ENABLED=true
+fi
+if [[ -z "${CP4BA_LOG_LEVEL}" ]]; then 
+  export CP4BA_LOG_LEVEL="INFO"
+fi
+if [[ -z "${CP4BA_LOG_TO_CONSOLE}" ]]; then 
+  export CP4BA_LOG_TO_CONSOLE=true
+fi
+if [[ -z "${CP4BA_LOG_TO_FILE}" ]]; then 
+  export CP4BA_LOG_TO_FILE=false
+fi
+if [[ -z "${CP4BA_LOG_FILE}" ]]; then 
+  export CP4BA_LOG_FILE=""
+fi
+if [[ -z "${CP4BA_LOG_MAX_SIZE}" ]]; then 
+  export CP4BA_LOG_MAX_SIZE=$((10 * 1024 * 1024))
+fi
+if [[ -z "${CP4BA_LOG_BACKUP_COUNT}" ]]; then 
+  export CP4BA_LOG_BACKUP_COUNT=5
+fi
+
 usage () {
   echo ""
   echo -e "${_CLR_GREEN}usage: $_me
@@ -99,10 +139,10 @@ updateTB () {
     
     if [[ "${UPD_RESPONSE}" == *"error_"* ]]; then
       echo ""
-      echo "ERROR configuring '${TB_NAME}' details:"
+      log_error "ERROR configuring '${TB_NAME}' details:"
       echo "${UPD_RESPONSE}"
       echo
-      exit
+      exit 1
     else
       echo " configured !"
     fi
@@ -142,10 +182,10 @@ removeTBContent () {
 
   if [[ "${TB_RESPONSE}" == *"error_"* ]]; then
     echo ""
-    echo "ERROR configuring '${TB_NAME}' details:"
+    log_error "ERROR configuring '${TB_NAME}' details:"
     echo "${TB_RESPONSE}"
     echo
-    exit
+    exit 1
   else
     echo " done !"
   fi
@@ -193,10 +233,10 @@ updateTeamBindings () {
 
 #==========================================
 echo ""
-echo "*************************************"
-echo "***** BAW Team Bindings Update *****"
-echo "*************************************"
-echo "Using team bindings file: "${_TEAM_BINDINGS_FILE}
+log_msg "*************************************"
+log_msg "***** BAW Team Bindings Update *****"
+log_msg "*************************************"
+log_msg "Using team bindings file: ${_TEAM_BINDINGS_FILE}"
 
 if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]] || [[ -z "${_BAW_APP}" ]] || [[ -z "${_BAW_APP_BRANCH}" ]] || [[ -z "${_TEAM_BINDINGS_FILE}" ]]; then
   echo "ERROR: Empty values for required parameter"
@@ -204,15 +244,13 @@ if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "$
   exit 1
 fi
 if [[ ! -f "${_TEAM_BINDINGS_FILE}" ]]; then
-  echo "ERROR: file not found: ${_TB}"
+  log_error "ERROR: file not found: ${_TB}"
   exit 1
 fi
 
 source ${_TEAM_BINDINGS_FILE}
 
-echo ""
-echo "Working on acronym ["${_BAW_APP}"] snapshot["${_BAW_APP_BRANCH}"]"
-echo ""
+log_msg "Working on acronym ["${_BAW_APP}"] snapshot["${_BAW_APP_BRANCH}"]"
 
 updateTeamBindings
 

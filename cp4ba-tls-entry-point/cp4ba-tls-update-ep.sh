@@ -16,6 +16,46 @@ _TARGET_NEW_SECRET_NAME=""
 _SOURCE_SECRET_NAME=""
 _SOURCE_SECRET_NAMESPACE=""
 
+#----------------------------------------------------
+_SCRIPT_PATH="${BASH_SOURCE}"
+while [ -L "${_SCRIPT_PATH}" ]; do
+  _SCRIPT_DIR="$(cd -P "$(dirname "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+  _SCRIPT_PATH="$(readlink "${_SCRIPT_PATH}")"
+  [[ ${_SCRIPT_PATH} != /* ]] && _SCRIPT_PATH="${_SCRIPT_DIR}/${_SCRIPT_PATH}"
+done
+_SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
+_SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+
+#----------------------------------------------------
+if [[ ! -f "$_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh" ]]; then
+  echo "Error, log package not found !"
+  echo "Clone it alongside with other cp4ba-..."
+  echo "use the command: git clone https://github.com/marcoantonioni/cp4ba-logger"
+  exit 1
+fi
+source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
+if [[ -z "${CP4BA_LOGGING_ENABLED}" ]]; then 
+  export CP4BA_LOGGING_ENABLED=true
+fi
+if [[ -z "${CP4BA_LOG_LEVEL}" ]]; then 
+  export CP4BA_LOG_LEVEL="INFO"
+fi
+if [[ -z "${CP4BA_LOG_TO_CONSOLE}" ]]; then 
+  export CP4BA_LOG_TO_CONSOLE=true
+fi
+if [[ -z "${CP4BA_LOG_TO_FILE}" ]]; then 
+  export CP4BA_LOG_TO_FILE=false
+fi
+if [[ -z "${CP4BA_LOG_FILE}" ]]; then 
+  export CP4BA_LOG_FILE=""
+fi
+if [[ -z "${CP4BA_LOG_MAX_SIZE}" ]]; then 
+  export CP4BA_LOG_MAX_SIZE=$((10 * 1024 * 1024))
+fi
+if [[ -z "${CP4BA_LOG_BACKUP_COUNT}" ]]; then 
+  export CP4BA_LOG_BACKUP_COUNT=5
+fi
+
 #--------------------------------------------------------
 _INST_TMP_FOLDER="/tmp"
 setTemporaryFolder () {
@@ -35,13 +75,13 @@ setTemporaryFolder () {
     fi
 
     if [[ $_OK -lt 1 ]]; then
-      echo -e "${_CLR_RED}[✗] ERROR '${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' is not a valid temporary folder, check if it is a folder or if you have write permissions !${_CLR_NC}"
-      echo -e "${_CLR_RED}'${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' ${_ERR_MSG_FOLDER}${_ERR_MSG_PERMISSIONS}${_CLR_NC}"
+      log_error "${_CLR_RED}[✗] ERROR '${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' is not a valid temporary folder, check if it is a folder or if you have write permissions !${_CLR_NC}"
+      log_error "${_CLR_RED}'${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' ${_ERR_MSG_FOLDER}${_ERR_MSG_PERMISSIONS}${_CLR_NC}"
       exit 1
     fi
     export _INST_TMP_FOLDER="${CP4BA_INST_TMP_FOLDER}"
   fi
-  echo -e "${_CLR_GREEN}Running with temporary folder '${_CLR_YELLOW}${_INST_TMP_FOLDER}${_CLR_GREEN}'${_CLR_NC}"
+  log_info "${_CLR_GREEN}Running with temporary folder '${_CLR_YELLOW}${_INST_TMP_FOLDER}${_CLR_GREEN}'${_CLR_NC}"
 
 }
 
@@ -167,9 +207,9 @@ cloneSecretToTarget() {
   _ISSUER=$(openssl x509 -text -noout -in ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt | grep "Issuer:" | sed 's/^[ \t]*Issuer: //g')
   _SUBJECT=$(openssl x509 -text -noout -in ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt | grep "Subject:" | sed 's/^[ \t]*Subject: //g')
   _SAN=$(openssl x509 -text -noout -in ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt | grep "DNS:" | sed 's/^[ \t]*//g')
-  echo -e "${_CLR_GREEN}Certificate Issuer: '${_CLR_YELLOW}${_ISSUER}${_CLR_GREEN}'${_CLR_NC}"
-  echo -e "${_CLR_GREEN}Certificate Subject: '${_CLR_YELLOW}${_SUBJECT}${_CLR_GREEN}'${_CLR_NC}"
-  echo -e "${_CLR_GREEN}Certificate SAN: '${_CLR_YELLOW}${_SAN}${_CLR_GREEN}'${_CLR_NC}"
+  log_msg "${_CLR_GREEN}Certificate Issuer: '${_CLR_YELLOW}${_ISSUER}${_CLR_GREEN}'${_CLR_NC}"
+  log_msg "${_CLR_GREEN}Certificate Subject: '${_CLR_YELLOW}${_SUBJECT}${_CLR_GREEN}'${_CLR_NC}"
+  log_msg "${_CLR_GREEN}Certificate SAN: '${_CLR_YELLOW}${_SAN}${_CLR_GREEN}'${_CLR_NC}"
 
   rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-ca.crt 2>/dev/null
   rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt 2>/dev/null
@@ -187,12 +227,12 @@ applySecretToZenService() {
 
     oc patch ZenService -n ${_TARGET_NAMESPACE} ${_TARGET_ZEN_SERVICE_NAME} --type='json' -p='[{"op": "add", "path": "/spec/zenCustomRoute","value":{"route_host":"'${_ROUTE_HOST}'","route_secret":"'${_TARGET_NEW_SECRET_NAME}'","route_reencrypt":true}}]' 2>/dev/null 1>/dev/null
     if [[ $? -ne 0 ]]; then
-      echo -e "${_CLR_RED}ERROR, patching zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
+      log_error "${_CLR_RED}ERROR, patching zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
       exit 1
     fi
-    echo -e "${_CLR_GREEN}Route host '${_CLR_YELLOW}${_ROUTE_HOST}${_CLR_GREEN}' updated with new secret '${_CLR_YELLOW}${_TARGET_NEW_SECRET_NAME}${_CLR_GREEN}', old secret '${_CLR_YELLOW}${_OLD_SECRET}${_CLR_GREEN}'${_CLR_NC}"
+    log_info "${_CLR_GREEN}Route host '${_CLR_YELLOW}${_ROUTE_HOST}${_CLR_GREEN}' updated with new secret '${_CLR_YELLOW}${_TARGET_NEW_SECRET_NAME}${_CLR_GREEN}', old secret '${_CLR_YELLOW}${_OLD_SECRET}${_CLR_GREEN}'${_CLR_NC}"
   else
-    echo -e "${_CLR_RED}ERROR, zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
+    log_error "${_CLR_RED}ERROR, zenservice '${_CLR_YELLOW}${_TARGET_ZEN_SERVICE_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_TARGET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
     exit 1
   fi
 }
@@ -230,10 +270,10 @@ configureZenCertificate () {
   fi
 
   if [[ "${_WAIT_PROGRESS}" = "true" ]]; then
-    echo -e "${_CLR_GREEN}Wait for ZenService update completion${_CLR_NC}" 
+    log_info "${_CLR_GREEN}Wait for ZenService update completion${_CLR_NC}" 
     waitForProgress
   else
-    echo -e "${_CLR_GREEN}Apply certificate to ZenService${_CLR_NC}" 
+    log_info "${_CLR_GREEN}Apply certificate to ZenService${_CLR_NC}" 
     verifySourceSecret
 
     if [[ $_SOURCE_SECRET -eq 1 ]]; then
@@ -246,14 +286,14 @@ configureZenCertificate () {
         CERT_PRESENT=$(oc get secret --no-headers -n ${_SOURCE_SECRET_NAMESPACE} ${_SOURCE_SECRET_NAME} | wc -l)
         if [[ CERT_PRESENT -gt 0 ]]; then
           _EXIST_SOURCE_SECRET=1
-          echo -e "${_CLR_YELLOW}Certificate for ZenService '${_CLR_GREEN}${_SOURCE_SECRET_NAME}${_CLR_YELLOW}' found in namespace '${_CLR_GREEN}${_SOURCE_SECRET_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}" 
+          log_info "${_CLR_GREEN}Certificate for ZenService '${_CLR_GREEN}${_SOURCE_SECRET_NAME}${_CLR_YELLOW}' found in namespace '${_CLR_GREEN}${_SOURCE_SECRET_NAMESPACE}${_CLR_YELLOW}'${_CLR_NC}" 
         fi
       fi
 
       if [[ $_EXIST_SOURCE_SECRET -eq 1 ]]; then
         cloneSecretToTarget
       else
-        echo -e "${_CLR_RED}ERROR, source secret '${_CLR_YELLOW}${_SOURCE_SECRET_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_SOURCE_SECRET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
+        log_error "${_CLR_RED}ERROR, source secret '${_CLR_YELLOW}${_SOURCE_SECRET_NAME}${_CLR_RED}' not found in namespace '${_CLR_YELLOW}${_SOURCE_SECRET_NAMESPACE}${_CLR_RED}'${_CLR_NC}"
         exit 1
       fi
     fi
@@ -268,7 +308,7 @@ configureZenCertificate () {
   fi
 }
 
-echo -e "=============================================================="
+log_msg "=============================================================="
 setTemporaryFolder
 configureZenCertificate
 exit 0

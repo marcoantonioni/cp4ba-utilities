@@ -27,6 +27,46 @@ _BAS_ADMINUSER=""
 _BAS_ADMINPASSWORD=""
 _DETAILS=false
 
+#----------------------------------------------------
+_SCRIPT_PATH="${BASH_SOURCE}"
+while [ -L "${_SCRIPT_PATH}" ]; do
+  _SCRIPT_DIR="$(cd -P "$(dirname "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+  _SCRIPT_PATH="$(readlink "${_SCRIPT_PATH}")"
+  [[ ${_SCRIPT_PATH} != /* ]] && _SCRIPT_PATH="${_SCRIPT_DIR}/${_SCRIPT_PATH}"
+done
+_SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
+_SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+
+#----------------------------------------------------
+if [[ ! -f "$_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh" ]]; then
+  echo "Error, log package not found !"
+  echo "Clone it alongside with other cp4ba-..."
+  echo "use the command: git clone https://github.com/marcoantonioni/cp4ba-logger"
+  exit 1
+fi
+source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
+if [[ -z "${CP4BA_LOGGING_ENABLED}" ]]; then 
+  export CP4BA_LOGGING_ENABLED=true
+fi
+if [[ -z "${CP4BA_LOG_LEVEL}" ]]; then 
+  export CP4BA_LOG_LEVEL="INFO"
+fi
+if [[ -z "${CP4BA_LOG_TO_CONSOLE}" ]]; then 
+  export CP4BA_LOG_TO_CONSOLE=true
+fi
+if [[ -z "${CP4BA_LOG_TO_FILE}" ]]; then 
+  export CP4BA_LOG_TO_FILE=false
+fi
+if [[ -z "${CP4BA_LOG_FILE}" ]]; then 
+  export CP4BA_LOG_FILE=""
+fi
+if [[ -z "${CP4BA_LOG_MAX_SIZE}" ]]; then 
+  export CP4BA_LOG_MAX_SIZE=$((10 * 1024 * 1024))
+fi
+if [[ -z "${CP4BA_LOG_BACKUP_COUNT}" ]]; then 
+  export CP4BA_LOG_BACKUP_COUNT=5
+fi
+
 usage () {
   echo ""
   echo -e "${_CLR_GREEN}usage: $_me
@@ -55,16 +95,16 @@ done
 
 listApplications () {
 
-  echo "List applications"
+  log_info "List applications"
   LOGIN_URI="${_BAS_EXTERNAL_BASE_URL}/ops/system/login"
 
   echo "Wait for CSRF token, login to ${LOGIN_URI}"
   until _CSRF_TOKEN=$(curl -ks -u ${_BAS_ADMINUSER}:${_BAS_ADMINPASSWORD} -X POST -H 'accept: application/json' -H 'Content-Type: application/json' ${LOGIN_URI} -d '{"refresh_groups": true, "requested_lifetime": 7200}' | jq .csrf_token 2>/dev/null | sed 's/"//g') && [[ -n "$_CSRF_TOKEN" ]]
   do
-    echo -n "."
+    #echo -n "."
     sleep 1
   done
-  echo ""
+  #echo ""
   _BASIC_AUTH=$(echo "${_BAS_ADMINUSER}:${_BAS_ADMINPASSWORD}" | base64) 
 
 
@@ -120,7 +160,7 @@ listApplications () {
 }
 
 if [[ -z "${_BAS_EXTERNAL_BASE_URL}" ]] || [[ -z "${_BAS_ADMINUSER}" ]] || [[ -z "${_BAS_ADMINPASSWORD}" ]]; then
-  echo "ERROR: Empty values for required parameter"
+  log_error "ERROR: Empty values for required parameter"
   usage
   exit 1
 fi

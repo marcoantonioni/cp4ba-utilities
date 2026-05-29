@@ -14,6 +14,46 @@ _CLR_YELLOW="\033[1;33m"   #'1;32' is Yellow's ANSI color code
 _CLR_BLUE="\033[0;34m"   #'0;34' is Blue's ANSI color code
 _CLR_NC="\033[0m"
 
+#----------------------------------------------------
+_SCRIPT_PATH="${BASH_SOURCE}"
+while [ -L "${_SCRIPT_PATH}" ]; do
+  _SCRIPT_DIR="$(cd -P "$(dirname "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+  _SCRIPT_PATH="$(readlink "${_SCRIPT_PATH}")"
+  [[ ${_SCRIPT_PATH} != /* ]] && _SCRIPT_PATH="${_SCRIPT_DIR}/${_SCRIPT_PATH}"
+done
+_SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
+_SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+
+#----------------------------------------------------
+if [[ ! -f "$_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh" ]]; then
+  echo "Error, log package not found !"
+  echo "Clone it alongside with other cp4ba-..."
+  echo "use the command: git clone https://github.com/marcoantonioni/cp4ba-logger"
+  exit 1
+fi
+source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
+if [[ -z "${CP4BA_LOGGING_ENABLED}" ]]; then 
+  export CP4BA_LOGGING_ENABLED=true
+fi
+if [[ -z "${CP4BA_LOG_LEVEL}" ]]; then 
+  export CP4BA_LOG_LEVEL="INFO"
+fi
+if [[ -z "${CP4BA_LOG_TO_CONSOLE}" ]]; then 
+  export CP4BA_LOG_TO_CONSOLE=true
+fi
+if [[ -z "${CP4BA_LOG_TO_FILE}" ]]; then 
+  export CP4BA_LOG_TO_FILE=false
+fi
+if [[ -z "${CP4BA_LOG_FILE}" ]]; then 
+  export CP4BA_LOG_FILE=""
+fi
+if [[ -z "${CP4BA_LOG_MAX_SIZE}" ]]; then 
+  export CP4BA_LOG_MAX_SIZE=$((10 * 1024 * 1024))
+fi
+if [[ -z "${CP4BA_LOG_BACKUP_COUNT}" ]]; then 
+  export CP4BA_LOG_BACKUP_COUNT=5
+fi
+
 #--------------------------------------------------------
 _INST_TMP_FOLDER="/tmp"
 setTemporaryFolder () {
@@ -33,13 +73,13 @@ setTemporaryFolder () {
     fi
 
     if [[ $_OK -lt 1 ]]; then
-      echo -e "${_CLR_RED}[✗] ERROR '${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' is not a valid temporary folder, check if it is a folder or if you have write permissions !${_CLR_NC}"
-      echo -e "${_CLR_RED}'${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' ${_ERR_MSG_FOLDER}${_ERR_MSG_PERMISSIONS}${_CLR_NC}"
+      log_error "${_CLR_RED}[✗] ERROR '${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' is not a valid temporary folder, check if it is a folder or if you have write permissions !${_CLR_NC}"
+      log_error "${_CLR_RED}'${_CLR_YELLOW}${CP4BA_INST_TMP_FOLDER}${_CLR_RED}' ${_ERR_MSG_FOLDER}${_ERR_MSG_PERMISSIONS}${_CLR_NC}"
       exit 1
     fi
     export _INST_TMP_FOLDER="${CP4BA_INST_TMP_FOLDER}"
   fi
-  echo -e "${_CLR_GREEN}Running with temporary folder '${_CLR_YELLOW}${_INST_TMP_FOLDER}${_CLR_GREEN}'${_CLR_NC}"
+  log_info "${_CLR_GREEN}Running with temporary folder '${_CLR_YELLOW}${_INST_TMP_FOLDER}${_CLR_GREEN}'${_CLR_NC}"
 
 }
 
@@ -94,7 +134,7 @@ _createWxSecret () {
     rm ${_WX_GENAI_TMP} 2>/dev/null 1>/dev/null
 
   else
-    echo -e "${_CLR_RED}[✗] ERROR: _createWxSecret secret name or namespace empty${_CLR_NC}"
+    log_error "${_CLR_RED}[✗] ERROR: _createWxSecret secret name or namespace empty${_CLR_NC}"
     exit 1
   fi
 }
@@ -105,16 +145,16 @@ _restartServers () {
     BASTUDIO_STATEFULSET=$(oc get statefulsets -n $1 | grep bastudio | awk '{print $1}')
     if [[ ! -z "${BASTUDIO_STATEFULSET}" ]]; then
       NUM_PODS=$(oc get statefulset ${BASTUDIO_STATEFULSET} -n $1 -o jsonpath="{.spec.replicas}")
-      echo "Scaling down to zero statefulset "${BASTUDIO_STATEFULSET} 
+      log_info "Scaling down to zero statefulset "${BASTUDIO_STATEFULSET} 
       oc scale statefulset ${BASTUDIO_STATEFULSET} -n $1 --replicas=0 2>/dev/null 1>/dev/null
       sleep 5
-      echo "Scaling up to ${NUM_PODS} statefulset "${BASTUDIO_STATEFULSET} 
+      log_info "Scaling up to ${NUM_PODS} statefulset "${BASTUDIO_STATEFULSET} 
       oc scale statefulset ${BASTUDIO_STATEFULSET} -n $1 --replicas=${NUM_PODS} 2>/dev/null 1>/dev/null
     else
-      echo -e "${_CLR_YELLOW}WARNING: _restartServers, BAStudio statefulset not found.${_CLR_NC}"
+      log_warning "${_CLR_YELLOW}WARNING: _restartServers, BAStudio statefulset not found.${_CLR_NC}"
     fi
   else
-    echo -e "${_CLR_YELLOW}WARNING: _restartServers not yet implemented for 'production' type deployment.${_CLR_NC}"
+    log_warning "${_CLR_YELLOW}WARNING: _restartServers not yet implemented for 'production' type deployment.${_CLR_NC}"
   fi
 }
 
@@ -137,7 +177,7 @@ _verifyVars() {
     fi
   fi
   if [[ "${_KO_CFG}" = "true" ]]; then
-    echo -e "${_CLR_RED}[✗] ERROR: _verifyVars GenAI configuration error, verify values for:${_CLR_YELLOW}${_WRONG_VARS}${_CLR_NC}"
+    log_error "${_CLR_RED}[✗] ERROR: _verifyVars GenAI configuration error, verify values for:${_CLR_YELLOW}${_WRONG_VARS}${_CLR_NC}"
     return 0
   fi
   return 1
@@ -162,7 +202,7 @@ configureGenAISecret() {
       _createWxSecret $1 ${CP4BA_INST_GENAI_WX_AUTH_SECRET}
       _restartServers $1
     else
-      echo -e "${_CLR_RED}[✗] Error, namespace '${_CLR_YELLOW}$1${_CLR_RED}' doesn't exists. ${_CLR_NC}"
+      log_error "${_CLR_RED}[✗] Error, namespace '${_CLR_YELLOW}$1${_CLR_RED}' doesn't exists. ${_CLR_NC}"
       exit 1
     fi
   fi
@@ -170,8 +210,8 @@ configureGenAISecret() {
 
 #==================================
 
-echo -e "=============================================================="
-echo -e "${_CLR_GREEN}Configuring GenAI Secret '${_CLR_YELLOW}${CP4BA_INST_NAMESPACE}${_CLR_GREEN}' namespace${_CLR_NC}"
+log_msg "=============================================================="
+log_msg "${_CLR_GREEN}Configuring GenAI Secret '${_CLR_YELLOW}${CP4BA_INST_NAMESPACE}${_CLR_GREEN}' namespace${_CLR_NC}"
 
 setTemporaryFolder
 

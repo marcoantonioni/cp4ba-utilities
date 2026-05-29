@@ -31,6 +31,46 @@ _BAW_DESIGN_OS=""
 _BAW_TARGET_ENV=""
 _IS_CASE_SOL=false
 
+#----------------------------------------------------
+_SCRIPT_PATH="${BASH_SOURCE}"
+while [ -L "${_SCRIPT_PATH}" ]; do
+  _SCRIPT_DIR="$(cd -P "$(dirname "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+  _SCRIPT_PATH="$(readlink "${_SCRIPT_PATH}")"
+  [[ ${_SCRIPT_PATH} != /* ]] && _SCRIPT_PATH="${_SCRIPT_DIR}/${_SCRIPT_PATH}"
+done
+_SCRIPT_PATH="$(readlink -f "${_SCRIPT_PATH}")"
+_SCRIPT_DIR="$(cd -P "$(dirname -- "${_SCRIPT_PATH}")" >/dev/null 2>&1 && pwd)"
+
+#----------------------------------------------------
+if [[ ! -f "$_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh" ]]; then
+  echo "Error, log package not found !"
+  echo "Clone it alongside with other cp4ba-..."
+  echo "use the command: git clone https://github.com/marcoantonioni/cp4ba-logger"
+  exit 1
+fi
+source $_SCRIPT_DIR/../../cp4ba-logger/scripts/logger.sh
+if [[ -z "${CP4BA_LOGGING_ENABLED}" ]]; then 
+  export CP4BA_LOGGING_ENABLED=true
+fi
+if [[ -z "${CP4BA_LOG_LEVEL}" ]]; then 
+  export CP4BA_LOG_LEVEL="INFO"
+fi
+if [[ -z "${CP4BA_LOG_TO_CONSOLE}" ]]; then 
+  export CP4BA_LOG_TO_CONSOLE=true
+fi
+if [[ -z "${CP4BA_LOG_TO_FILE}" ]]; then 
+  export CP4BA_LOG_TO_FILE=false
+fi
+if [[ -z "${CP4BA_LOG_FILE}" ]]; then 
+  export CP4BA_LOG_FILE=""
+fi
+if [[ -z "${CP4BA_LOG_MAX_SIZE}" ]]; then 
+  export CP4BA_LOG_MAX_SIZE=$((10 * 1024 * 1024))
+fi
+if [[ -z "${CP4BA_LOG_BACKUP_COUNT}" ]]; then 
+  export CP4BA_LOG_BACKUP_COUNT=5
+fi
+
 usage () {
   echo ""
   echo -e "${_CLR_GREEN}usage: $_me
@@ -65,25 +105,25 @@ done
 
 installApplication () {
 
-  echo "Installing application file: ${_BAW_BAW_APP_FILE}"
+  log_msg "Installing application file: ${_BAW_BAW_APP_FILE}"
   _BAW_EXTERNAL_BASE_URL=$(oc get ICP4ACluster -n ${_BAW_DEPL_NAMESPACE} ${_CR_NAME} -o jsonpath='{.status.endpoints}' | jq '.[] | select(.scope == "External") | select(.name | contains("base URL for '${_BAW_DEPL_NAME}'"))' | jq .uri | sed 's/"//g')
 
   LOGIN_URI="${_BAW_EXTERNAL_BASE_URL}ops/system/login"
 
-  echo "Wait for CSRF token, login to ${LOGIN_URI}"
+  log_msg "Wait for CSRF token, login to ${LOGIN_URI}"
   until _CSRF_TOKEN=$(curl -ks -u ${_BAW_ADMINUSER}:${_BAW_ADMINPASSWORD} -X POST -H 'accept: application/json' -H 'Content-Type: application/json' ${LOGIN_URI} -d '{"refresh_groups": true, "requested_lifetime": 7200}' | jq .csrf_token 2>/dev/null | sed 's/"//g') && [[ -n "$_CSRF_TOKEN" ]]
   do
-    echo -n "."
+    #echo -n "."
     sleep 1
   done
 
-  echo ""
+  log_msg ""
   _CASE_ATTRS=""
   if [[ "${_IS_CASE_SOL}" = "true" ]]; then
     _CASE_ATTRS="&caseDosName=${_BAW_DESIGN_OS}&caseProjectArea=${_BAW_TARGET_ENV}"
-    echo "Deploying case solution application"
+    log_msg "Deploying case solution application"
   else
-    echo "Deploying workflow application"
+    log_msg "Deploying workflow application"
   fi
 
 
@@ -92,9 +132,9 @@ installApplication () {
   INST_DESCR=$(echo ${INST_RESPONSE} | jq .description 2>/dev/null | sed 's/"//g')
   INST_URL=$(echo ${INST_RESPONSE} | jq .url 2>/dev/null | sed 's/"//g')
 
-  echo "Request result: "${INST_DESCR}
+  log_msg "Request result: "${INST_DESCR}
   sleep 2
-  echo "Get installation status at url: ${INST_URL}"
+  log_msg "Get installation status at url: ${INST_URL}"
   if [[ ! -z "${INST_URL}" ]]; then
     while true 
     do
@@ -102,13 +142,13 @@ installApplication () {
       if [[ ${INST_STATE} == "running" ]]; then
         sleep 2
       else
-        echo ""
-        echo "Final installation state: "${INST_STATE}
+        log_msg ""
+        log_msg "Final installation state: ${INST_STATE}"
         break
       fi
     done
   else
-    echo "ERROR during installation ${INST_DESCR}"
+    log_error "ERROR during installation ${INST_DESCR}"
   fi
 }
 
@@ -123,12 +163,12 @@ if [[ "${_IS_CASE_SOL}" = "true" ]]; then
 fi
 if [[ -z "${_BAW_DEPL_NAMESPACE}" ]] || [[ -z "${_BAW_DEPL_NAME}" ]] || [[ -z "${_CR_NAME}" ]] || 
    [[ -z "${_BAW_ADMINUSER}" ]] || [[ -z "${_BAW_ADMINPASSWORD}" ]] || [[ -z "${_BAW_BAW_APP_FILE}" ]]; then
-  echo "ERROR: Empty values for required parameter"
+  log_error "ERROR: Empty values for required parameter"
   usage
   exit 1
 fi
 if [[ ! -f "${_BAW_BAW_APP_FILE}" ]]; then
-  echo "Application file not found: "${_BAW_BAW_APP_FILE}
+  log_error "Application file not found: "${_BAW_BAW_APP_FILE}
   exit 1
 fi
 
