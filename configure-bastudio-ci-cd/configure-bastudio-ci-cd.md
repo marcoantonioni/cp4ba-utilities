@@ -1,8 +1,10 @@
 # configure-bastudio-ci-cd
 
-<i>Last update: 2024-01-12</i>
+<i>Last update: 2026-07-22</i>
 
-Sequence of operations to configure BAStudio with GIT for CI/CD.
+For production environments (not Starter) see automated configurations in https://github.com/marcoantonioni/cp4ba-config-tune files with -cicd suffix
+
+Sequence of operations to configure Starter deployment of BAStudio with GIT for CI/CD.
 
 # Access token, how to
 
