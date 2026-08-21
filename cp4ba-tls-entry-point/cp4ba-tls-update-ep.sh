@@ -214,6 +214,7 @@ cloneSecretToTarget() {
   rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-ca.crt 2>/dev/null
   rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.crt 2>/dev/null
   rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert-tls.key 2>/dev/null
+  rm ${_INST_TMP_FOLDER}/cp4ba-ep-${_RND_}-cert*.pem 2>/dev/null
 
 }
 
