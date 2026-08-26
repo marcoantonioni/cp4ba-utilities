@@ -59,7 +59,7 @@ fi
 #-------------------------------
 # CP4BA Resource types
 # do not remove: pv
-declare -a _pakResources=(catalogsources.operators.coreos.com csv deployment statefulsets.apps job cm secret service route rs pod zenextensions.zen.cpd.ibm.com clients.oidc.security.ibm.com operandrequests.operator.ibm.com operandbindinfos.operator.ibm.com authentications.operator.ibm.com icp4aoperationaldecisionmanagers.icp4a.ibm.com flinkdeployments.flink.ibm.com pvc)
+declare -a _pakResources=(catalogsources.operators.coreos.com csv deployment statefulsets.apps job cm secret service route rs pod zenextensions.zen.cpd.ibm.com clients.oidc.security.ibm.com operandrequests.operator.ibm.com operandbindinfos.operator.ibm.com authentications.operator.ibm.com icp4aoperationaldecisionmanagers.icp4a.ibm.com flinkdeployments.flink.ibm.com pvc queuemanagers.mq.ibm.com)
 
 #-------------------------------
 resourceExist () {
